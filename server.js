@@ -50,6 +50,8 @@ process.on('unhandledRejection', (err) => {
     process.exit(1);
 });
 
+init();
+
 server.route({
     method : 'GET',
     path : '/',
@@ -61,15 +63,16 @@ server.route({
 server.route({
     method : 'GET',
     path : '/user/signin',
-    handler : function(request,reply){
+    handler : function(request,h){
         // console.log('query from request is : ',request.query);
         let query_params = request.query,uname = query_params['username'],pwd = query_params['password'];
         // console.log('name == ',uname,'pwd == ',pwd);
         // console.log(query_params);
         // console.log(typeof query_params);
+        let msg;
 
         if((query_params['username'] == undefined || query_params['username'] == "" ) || (query_params['password'] == undefined || query_params['password'] == "" ) ){
-            return 'Username and password are mandatory field.Kindly provide them';
+                return h.response('Username and password are mandatory field.Kindly provide them').code(400);
         }
 
         if(uname in active_user_list){
@@ -77,20 +80,32 @@ server.route({
             let ppw = userdetails.getPassword();
             // console.log('Password stored in cache ',ppw , ' and its type is : ',typeof ppw);
             if(userdetails.getPassword() == pwd){
-                return 'Successfully logged into the account';
+                return h.response('Successfully logged into the account').code(201);
             }
             else{
-                return 'Entered password is wrong';
+                return h.response('Entered password is wrong').code(400);
             }
         }
         else{
-            return 'Mentioned username is improper';
+                return h.response('Mentioned username is improper').code(400);
         }
 
     }
 })
+// This API is for ***** INTERNAL PURPOSE ****** 
+server.route({
+    method : 'GET',
+    path : '/users',
+    handler : function(request,h){
+            let obj = {};
+            for(const [key,value] of Object.entries(active_user_list)){
+               obj[key] = value.getPassword();
+            }
+            return h.response(obj).code(200);
+        }
 
-init();
+    })
+
 
 // WORKING IN V16.0.0 OF HAPI JS BUT NOT IN V18.0.0 
 // const server = new Hapi.Server({
@@ -111,20 +126,20 @@ init();
 server.route({
     method : 'POST',
     path : '/user/signup',
-    handler : function(request,reply){
+    handler : function(request,h){
 
         try{
             let query_params = JSON.parse(request.payload);
             // console.log(typeof query_params);
 
             if((query_params['username'] == undefined || query_params['username'] == "" ) || (query_params['password'] == undefined || query_params['password'] == "" ) || (query_params['email'] == undefined || query_params['email'] == "" )){
-                return 'Username, Password and Email id is a mandatory field kindly provide them'
+                return h.response('Username, Password and Email id is a mandatory field kindly provide them').code(400);
             }
             if(registered_email_ids.includes(query_params['email'])){
-                return 'Email ID provided is already being registered';
+                return h.response('Email ID provided is already being registered').code(400);
             }
             if(query_params['username'] in active_user_list){
-                return 'User Name isn\'t available Kindly provide some other names';
+                return h.response('User Name isn\'t available Kindly provide some other names').code(400);
             }
 
             let obj = {};
@@ -140,13 +155,13 @@ server.route({
             // console.log('Active user list : ',active_user_list);
             registered_email_ids.push(query_params['email']);
             // query_params.hostname = 'localhost'
-            return 'Successfully created account';
+            return h.response('Successfully created account').code(200);
         }
         catch(err){
             let errorObj = {};
             errorObj.error_message = err.message;
             errorObj.message = 'Unable to create account at this moment';
-            return errorObj;
+            return h.response(errorObj).code(500);
         }
     }
 })
