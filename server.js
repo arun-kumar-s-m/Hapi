@@ -93,7 +93,7 @@ let server = Hapi.server({
     port: 3000,
     host: 'localhost'
 });
-let active_user_list = {},registered_email_ids = [],logs = {},userCartDetails = {};
+let active_user_list = {},registered_email_ids = [],logs = {},userCartDetails = {},userOrderedItems = [];
 
 const init = async () => {
 
@@ -267,6 +267,81 @@ server.route(
         }
     },
     {
+        method : 'POST',
+        path : '/getcart/buy',
+        handler : function(request,h){
+            let payload = JSON.parse(request.payload),uname = payload['username'],itemsAndQuantities = payload['items'];
+            let invoice = {};
+            if(uname == undefined || uname == '' || !(uname in active_user_list)){
+                return h.response('kindly provide valid username in request payload').code(400);
+            }
+            let total_price_of_ordered_items =  0;
+            for(const [key,value] of Object.entries(itemsAndQuantities)){
+                if(!(key in products)){
+                    return h.response(`Invalid item name : ${key} being passed`).code(400);
+                }
+                let quantity = Number(value);
+                console.log('QUANTITY : ',quantity);
+                if(isNaN(quantity)){
+                    return h.response(`Invalid quantity : ${value} being provided for item : ${key}`).code(400);
+                }
+                let obj = {};
+                obj['item_name'] = key;
+                obj['quantity'] = quantity;
+                obj['unit price'] = products[key].discounted_price;
+                obj['total price'] = quantity * products[key].discounted_price;
+                total_price_of_ordered_items = total_price_of_ordered_items + obj['total price'];
+                invoice[key] = obj;
+            }
+            invoice['total_price_in_rupees'] = total_price_of_ordered_items;
+            let userAlreadyOrderedItems = userOrderedItems[uname];
+            if(userAlreadyOrderedItems == undefined){
+                userAlreadyOrderedItems = [];
+            }
+            userAlreadyOrderedItems.push(invoice);
+            userOrderedItems[uname] = userAlreadyOrderedItems;
+            logs[uname] = loggingFunction.loggingTheActionToGlobalVariable(`User placed an order`,request.location,logs[uname]);
+            return h.response('Items has been placed successfully').code(200);
+        }
+    },
+    {
+        method : 'POST',
+        path : '/buy',
+        handler : function(request,h){
+            let payload = JSON.parse(request.payload),uname = payload['username'],item_name = payload['item name'],qty = payload['quantity'];
+            let invoice = {};
+            if(uname == undefined || uname == '' || !(uname in active_user_list)){
+                return h.response('kindly provide valid username in request payload').code(400);
+            }
+            if(!(item_name in products)){
+                return h.response('Item name is invalid.Kindly mention it properly').code(400);
+            }
+            let previousOrderedItems = userOrderedItems[uname];
+            if(previousOrderedItems == undefined){
+                previousOrderedItems = [];
+            }
+            invoice['item_name'] = item_name;
+            invoice['quantity'] = qty;
+            invoice['unit price'] = products[item_name].discounted_price;
+            invoice['total price'] = qty * products[item_name].discounted_price;
+            invoice['total_price_in_rupees'] = invoice['total price'];
+            previousOrderedItems.push(invoice);
+            userOrderedItems[uname] = previousOrderedItems;
+            return h.response(`${item_name} has been placed successfully`).code(200);
+        }
+    },
+    {
+        method : 'GET',
+        path : '/getordereditems',
+        handler : function(request,h){
+            let uname = request.query["username"];
+            if(userOrderedItems[uname] == undefined){
+                userOrderedItems[uname] = [];
+            }
+            return h.response(userOrderedItems[uname]).code(200);
+        }
+    },
+    {
         method : 'GET',
         path : '/findmyipaddress',
         handler : function(request,h){
@@ -287,6 +362,14 @@ server.route(
             // console.log('complete logs : ',logs);
             console.log('User log details : ',logs[uname]);
             return h.response(request.location).code(200);
+        }
+    },
+    {
+        method : 'GET',
+        path : '/userlogs',
+        handler : function(request,h){
+            let query_params = request.query,uname = query_params['username'];
+            return h.response(logs[uname]).code(200);
         }
     },
     {
