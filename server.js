@@ -93,7 +93,7 @@ let server = Hapi.server({
     port: 3000,
     host: 'localhost'
 });
-let active_user_list = {},registered_email_ids = [],logs = {},userCartDetails = {},userOrderedItems = [];
+let active_user_list = {},admin_user_list = [],registered_email_ids = [],logs = {},userCartDetails = {},userOrderedItems = [];
 
 const init = async () => {
 
@@ -268,6 +268,129 @@ server.route(
     },
     {
         method : 'POST',
+        path : '/addproduct',
+        handler : function(request,h){
+            let payload = JSON.parse(request.payload),uname = payload['user_name'],item_name = payload['item_name'],category = payload['category'],subcategory = payload['subcategory'];
+            if(!(admin_user_list.includes(uname))){
+                return h.response('Unable to add the product since user is not a Admin').code(400);
+            }
+            else if(category == undefined || category == ''){
+                return h.response('Category param is empty kindly provie proper value to add the product').code(400);
+            }
+            else if(subcategory == undefined || subcategory == ''){
+                return h.response('Sub category param is empty kindly provie proper value to add the product').code(400);
+            }
+            else if(item_name == undefined || item_name == ''){
+                return h.response('Item name is empty kindly provide valid item name').code(400);
+            }
+            else{
+                let invalidPayload = [],name = payload['name to show in ui'], price_in_Rs = payload['price_in_Rs'],discounted_price = payload['discounted_price'];
+                if(name == undefined || name == '' ){
+                    invalidPayload.push('name to show in ui param is empty.kindly provide proper value');
+                }
+                if(price_in_Rs == undefined || price_in_Rs == '' ){
+                    invalidPayload.push('Price in Rs param is empty.kindly provide proper value');
+                }
+                if(discounted_price == undefined || discounted_price == ''){
+                    invalidPayload.push('Discounted price in Rs param is empty.kindly provide proper value');
+                }
+                if(invalidPayload.length > 0){
+                    let errorObj = {};
+                    errorObj['message'] = 'Certain essential keys are missing in the payload';
+                    errorObj['keys missing'] = invalidPayload;
+                    return h.response(errorObj).code(400);
+                }
+                else{
+                    let newproductObj = {};
+                    newproductObj["name"] = name;
+                    newproductObj["price_in_Rs"] = price_in_Rs;
+                    newproductObj["discounted_price"] = discounted_price;
+                    if(categoryWithSubCategories[category][subcategory] == undefined){
+                        categoryWithSubCategories[category][subcategory] = [];
+                    }
+                    categoryWithSubCategories[category][subcategory].push(item_name);
+                    products[item_name] = newproductObj;
+                    return h.response('Item has been successfully added').code(200);
+                }
+            }
+        }
+    },
+    {
+        method : 'DELETE',
+        path : '/products/delete',
+        handler : function(request,h){
+            let payload = JSON.parse(request.payload),uname = payload['username'],item_name = payload['item_name'],category = payload['category'],subcategory = payload['subcategory'];
+            if(uname == undefined || uname == ''){
+                return h.response('username param in payload is mandatory Kindly provide it').code(400)
+            }
+            else if(!(admin_user_list.includes(uname))){
+                return h.response('Unable to add the product since user is not a Admin').code(401);
+            }
+            else if(category == undefined || category == ''){
+                return h.response('Category param is empty kindly provie proper value to add the product').code(400);
+            }
+            else if(subcategory == undefined || subcategory == ''){
+                return h.response('Sub category param is empty kindly provie proper value to add the product').code(400);
+            }
+            else if(item_name == undefined || item_name == ''){
+                return h.response('Item name is empty kindly provide valid item name').code(400);
+            }
+            else{
+                if(categoryWithSubCategories[category] == undefined){
+                    return h.response('Improper category name provided').code(400);
+                }
+                else if(categoryWithSubCategories[category][subcategory] == undefined){
+                    return h.response('Improper sub category name provided').code(400);
+                }
+                else{
+                    let productArray = categoryWithSubCategories[category][subcategory];
+                    let indexOfProductToBeRemoved = productArray.indexOf(item_name);
+                    if(indexOfProductToBeRemoved == -1){
+                        return h.response('Invalid item name being passed in the request').code(400);
+                    }
+                    let finalArray = productArray.splice(0,indexOfProductToBeRemoved).concat(productArray.splice(1));
+                    categoryWithSubCategories[category][subcategory] = finalArray;
+                    delete products[item_name];
+                    return h.response('Product has been removed successfully').code(200);
+                }
+            }
+        }
+    },
+    {
+        method : ['PUT','POST'],
+        path : '/products/edit',
+        handler : function(request,h){
+            let payload = JSON.parse(request.payload),uname = payload['username'],item_name = payload['item_name'];
+            if(uname == undefined || uname == '' || !(uname in active_user_list)){
+                return h.response('kindly provide valid username in request payload').code(400);
+            }
+            else if(!(admin_user_list.includes(uname))){
+                return h.response('Unable to perform action since user isn\'t an Admin').code(400);
+            }
+            else if(!(item_name in products)){
+                return h.response('Mentioned item name is improper').code(400);
+            }
+            else{
+                let productDetails = products[item_name],invalid_keys = [],updated_keys = [];
+                for(const [key,value] of Object.entries(payload)){
+                    if(key in productDetails){
+                        productDetails[key] = value;
+                        updated_keys.push(key);
+                    }
+                    else{
+                        invalid_keys.push(key);
+                    }
+                }
+                products[item_name] = productDetails;
+                let resultobj = {};
+                resultobj['updated_keys'] = updated_keys;
+                resultobj['invalid_keys'] = invalid_keys;
+                return h.response(resultobj).code(200);
+            }
+        }
+    },
+    {
+        method : 'POST',
         path : '/getcart/buy',
         handler : function(request,h){
             let payload = JSON.parse(request.payload),uname = payload['username'],itemsAndQuantities = payload['items'];
@@ -422,6 +545,36 @@ server.route(
             return h.response(obj).code(200);
         }
     
+    },
+    {
+        method : 'POST',
+        path : '/makeuseradmin',
+        handler : function(request,h){
+            let queryparams = request.query,uname = queryparams['username'];
+            if(uname == undefined || uname == '' || !(uname in active_user_list)){
+                console.log('Admin list : ',admin_user_list);
+                return h.response('kindly provide valid username in request payload').code(400);
+            }
+            // else if(!(uname in active_user_list)){
+            //     console.log('Admin list : ',admin_user_list);
+            //     return h.response(`Mentioned username : ${uname} is invalid`).code(400);
+            // }
+            else{
+                if(admin_user_list.includes(uname)){
+                    console.log('Admin list : ',admin_user_list);
+                    return h.response(`Mentioned username : ${uname} is already an Admin`).code(200);
+                }
+                else{
+                    admin_user_list.push(uname);
+                    console.log('Admin list : ',admin_user_list);
+                    return h.response(`Added user : ${uname} as Admin`).code(200);
+                }
+            }
+            for(const [key,value] of Object.entries(active_user_list)){
+                obj[key] = value.getPassword();
+            }
+            return h.response(obj).code(200);
+        }
     },
     {
         method : ['POST','PUT'],
