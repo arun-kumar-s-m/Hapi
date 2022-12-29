@@ -46,7 +46,10 @@ function tokenValidator(token){
                 return 'Invalid token being passed in the header';
             }
             else{
-                return 'success';
+                let result = {};
+                result['message'] = 'success';
+                result['uname'] = uname;
+                return result;
             }
         }
     }
@@ -291,10 +294,11 @@ server.route(
                 return h.response('Header missing in the request').code(401);
             }
             let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
-            if(resp != 'success'){
+            if(typeof resp != 'object'){
                 return h.response(resp).code(401);
             }
             console.log('Response received : ',resp);
+            console.log('Username after decoding from token : ',resp['uname']);
             // console.log('Token value : ',token);
             // let decoded = jwt.verify(token, 'SECRET_KEY_ARUN');
             // let decoded = 'arun';
@@ -402,7 +406,18 @@ server.route(
         method : 'POST',
         path : '/addtocart',
         handler : function(request,h){
-            let itemToAddToCart = JSON.parse(request.payload),item_name = itemToAddToCart['item name'],uname = itemToAddToCart['username'];
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            if(typeof resp != 'object'){
+                return h.response(resp).code(401);
+            }
+            // console.log('Response received : ',resp);
+            // console.log('Username after decoding from token : ',resp['uname']);
+            let uname = resp['uname'];
+            let itemToAddToCart = JSON.parse(request.payload),item_name = itemToAddToCart['item name'];
             if(item_name == undefined || item_name == ''){
                 return h.response('Kindly provide valid item name to add to Cart').code(400);
             }
@@ -435,7 +450,17 @@ server.route(
         method : 'GET',
         path : '/getcart',
         handler : function(request,h){
-            let uname = request.query['username'];
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            if(typeof resp != 'object'){
+                return h.response(resp).code(401);
+            }
+            // console.log('Response received : ',resp);
+            // console.log('Username after decoding from token : ',resp['uname']);
+            let uname = resp['uname'];
             if(uname == undefined || uname == ''){
                 return h.response('Kindly provide username to get his cart details').code(400);
             }
@@ -455,48 +480,64 @@ server.route(
         method : 'POST',
         path : '/addproduct',
         handler : function(request,h){
-            let payload = JSON.parse(request.payload),uname = payload['user_name'],item_name = payload['item_name'],category = payload['category'],subcategory = payload['subcategory'];
-            if(!(admin_user_list.includes(uname))){
-                return h.response('Unable to add the product since user is not a Admin').code(400);
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
             }
-            else if(category == undefined || category == ''){
-                return h.response('Category param is empty kindly provie proper value to add the product').code(400);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            if(typeof resp != 'object'){
+                return h.response(resp).code(401);
             }
-            else if(subcategory == undefined || subcategory == ''){
-                return h.response('Sub category param is empty kindly provie proper value to add the product').code(400);
-            }
-            else if(item_name == undefined || item_name == ''){
-                return h.response('Item name is empty kindly provide valid item name').code(400);
-            }
-            else{
-                let invalidPayload = [],name = payload['name to show in ui'], price_in_Rs = payload['price_in_Rs'],discounted_price = payload['discounted_price'];
-                if(name == undefined || name == '' ){
-                    invalidPayload.push('name to show in ui param is empty.kindly provide proper value');
+            // console.log('Response received : ',resp);
+            // console.log('Username after decoding from token : ',resp['uname']);
+            let uname = resp['uname'];
+            if(admin_user_list.includes(uname)){
+                let payload = JSON.parse(request.payload),item_name = payload['item_name'],category = payload['category'],subcategory = payload['subcategory'];
+                if(!(admin_user_list.includes(uname))){
+                    return h.response('Unable to add the product since user is not a Admin').code(400);
                 }
-                if(price_in_Rs == undefined || price_in_Rs == '' ){
-                    invalidPayload.push('Price in Rs param is empty.kindly provide proper value');
+                else if(category == undefined || category == ''){
+                    return h.response('Category param is empty kindly provie proper value to add the product').code(400);
                 }
-                if(discounted_price == undefined || discounted_price == ''){
-                    invalidPayload.push('Discounted price in Rs param is empty.kindly provide proper value');
+                else if(subcategory == undefined || subcategory == ''){
+                    return h.response('Sub category param is empty kindly provie proper value to add the product').code(400);
                 }
-                if(invalidPayload.length > 0){
-                    let errorObj = {};
-                    errorObj['message'] = 'Certain essential keys are missing in the payload';
-                    errorObj['keys missing'] = invalidPayload;
-                    return h.response(errorObj).code(400);
+                else if(item_name == undefined || item_name == ''){
+                    return h.response('Item name is empty kindly provide valid item name').code(400);
                 }
                 else{
-                    let newproductObj = {};
-                    newproductObj["name"] = name;
-                    newproductObj["price_in_Rs"] = price_in_Rs;
-                    newproductObj["discounted_price"] = discounted_price;
-                    if(categoryWithSubCategories[category][subcategory] == undefined){
-                        categoryWithSubCategories[category][subcategory] = [];
+                    let invalidPayload = [],name = payload['name to show in ui'], price_in_Rs = payload['price_in_Rs'],discounted_price = payload['discounted_price'];
+                    if(name == undefined || name == '' ){
+                        invalidPayload.push('name to show in ui param is empty.kindly provide proper value');
                     }
-                    categoryWithSubCategories[category][subcategory].push(item_name);
-                    products[item_name] = newproductObj;
-                    return h.response('Item has been successfully added').code(200);
+                    if(price_in_Rs == undefined || price_in_Rs == '' ){
+                        invalidPayload.push('Price in Rs param is empty.kindly provide proper value');
+                    }
+                    if(discounted_price == undefined || discounted_price == ''){
+                        invalidPayload.push('Discounted price in Rs param is empty.kindly provide proper value');
+                    }
+                    if(invalidPayload.length > 0){
+                        let errorObj = {};
+                        errorObj['message'] = 'Certain essential keys are missing in the payload';
+                        errorObj['keys missing'] = invalidPayload;
+                        return h.response(errorObj).code(400);
+                    }
+                    else{
+                        let newproductObj = {};
+                        newproductObj["name"] = name;
+                        newproductObj["price_in_Rs"] = price_in_Rs;
+                        newproductObj["discounted_price"] = discounted_price;
+                        if(categoryWithSubCategories[category][subcategory] == undefined){
+                            categoryWithSubCategories[category][subcategory] = [];
+                        }
+                        categoryWithSubCategories[category][subcategory].push(item_name);
+                        products[item_name] = newproductObj;
+                        return h.response('Item has been successfully added').code(200);
+                    }
                 }
+            }
+            else{
+                return h.response('User isn\'t admin So unable to perform the action').code(401);
             }
         }
     },
@@ -504,7 +545,19 @@ server.route(
         method : 'DELETE',
         path : '/products/delete',
         handler : function(request,h){
-            let payload = JSON.parse(request.payload),uname = payload['username'],item_name = payload['item_name'],category = payload['category'],subcategory = payload['subcategory'];
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            if(typeof resp != 'object'){
+                return h.response(resp).code(401);
+            }
+            // console.log('Response received : ',resp);
+            // console.log('Username after decoding from token : ',resp['uname']);
+            let uname = resp['uname'];
+            if(admin_user_list.includes(uname)){
+                let payload = JSON.parse(request.payload),item_name = payload['item_name'],category = payload['category'],subcategory = payload['subcategory'];
             if(uname == undefined || uname == ''){
                 return h.response('username param in payload is mandatory Kindly provide it').code(400)
             }
@@ -540,12 +593,25 @@ server.route(
                 }
             }
         }
+    }
     },
     {
         method : ['PUT','POST'],
         path : '/products/edit',
         handler : function(request,h){
-            let payload = JSON.parse(request.payload),uname = payload['username'],item_name = payload['item_name'];
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            if(typeof resp != 'object'){
+                return h.response(resp).code(401);
+            }
+            // console.log('Response received : ',resp);
+            // console.log('Username after decoding from token : ',resp['uname']);
+            let uname = resp['uname'];
+            if(admin_user_list.includes(uname)){
+                let payload = JSON.parse(request.payload),item_name = payload['item_name'];
             if(uname == undefined || uname == '' || !(uname in active_user_list)){
                 return h.response('kindly provide valid username in request payload').code(400);
             }
@@ -573,12 +639,24 @@ server.route(
                 return h.response(resultobj).code(200);
             }
         }
+    }
     },
     {
         method : 'POST',
         path : '/getcart/buy',
         handler : function(request,h){
-            let payload = JSON.parse(request.payload),uname = payload['username'],itemsAndQuantities = payload['items'];
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            if(typeof resp != 'object'){
+                return h.response(resp).code(401);
+            }
+            // console.log('Response received : ',resp);
+            // console.log('Username after decoding from token : ',resp['uname']);
+            let uname = resp['uname'];
+            let payload = JSON.parse(request.payload),itemsAndQuantities = payload['items'];
             let invoice = {};
             if(uname == undefined || uname == '' || !(uname in active_user_list)){
                 return h.response('kindly provide valid username in request payload').code(400);
@@ -611,6 +689,7 @@ server.route(
             }
             userAlreadyOrderedItems.push(invoice);
             userOrderedItems[uname] = userAlreadyOrderedItems;
+            console.log(userOrderedItems);
             logs[uname] = loggingFunction.loggingTheActionToGlobalVariable(`User placed an order`,request.location,logs[uname]);
             let resObj = {};
             resObj["message"] = 'Items has been placed successfully';
@@ -628,7 +707,18 @@ server.route(
         method : 'POST',
         path : '/buy',
         handler : function(request,h){
-            let payload = JSON.parse(request.payload),uname = payload['username'],item_name = payload['item name'],qty = payload['quantity'];
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            if(typeof resp != 'object'){
+                return h.response(resp).code(401);
+            }
+            // console.log('Response received : ',resp);
+            // console.log('Username after decoding from token : ',resp['uname']);
+            let uname = resp['uname'];
+            let payload = JSON.parse(request.payload),item_name = payload['item name'],qty = payload['quantity'];
             let invoice = {};
             if(uname == undefined || uname == '' || !(uname in active_user_list)){
                 return h.response('kindly provide valid username in request payload').code(400);
@@ -650,6 +740,7 @@ server.route(
             invoice['total_price_in_rupees'] = invoice['total price'];
             previousOrderedItems.push(invoice);
             userOrderedItems[uname] = previousOrderedItems;
+            console.log(userOrderedItems);
             return h.response(`${item_name} has been placed successfully`).code(200);
         }
     },
@@ -657,7 +748,18 @@ server.route(
         method : 'GET',
         path : '/getordereditems',
         handler : function(request,h){
-            let uname = request.query["username"];
+
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            if(typeof resp != 'object'){
+                return h.response(resp).code(401);
+            }
+            // console.log('Response received : ',resp);
+            // console.log('Username after decoding from token : ',resp['uname']);
+            let uname = resp['uname'];
             if(userOrderedItems[uname] == undefined){
                 userOrderedItems[uname] = [];
             }
@@ -691,8 +793,24 @@ server.route(
         method : 'GET',
         path : '/userlogs',
         handler : function(request,h){
-            let query_params = request.query,uname = query_params['username'];
-            return h.response(logs[uname]).code(200);
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            if(typeof resp != 'object'){
+                return h.response(resp).code(401);
+            }
+            let uname = resp['uname'];
+            if(admin_user_list.includes(uname)){
+                let query_params = request.query,searchusername = query_params['username'];
+                return h.response(logs[searchusername]).code(200);
+            }
+            else{
+                return h.response('User isn\'t admin So unable to perform the action').code(401);
+            }
+            // let query_params = request.query,uname = query_params['username'];
+            // return h.response(logs[uname]).code(200);
         }
     },
     {
@@ -701,7 +819,7 @@ server.route(
         handler : function(request,h){
             let query_params = request.query,uname = query_params['username'],pwd = query_params['password'];
             let msg;
-    
+            console.log(userOrderedItems);
             if((uname == undefined || uname == "" ) || (pwd == undefined || pwd == "" ) ){
                     msg = 'Username and password are mandatory field.Kindly provide them';
                     if(uname != undefined && uname != ""){
@@ -744,11 +862,29 @@ server.route(
         method : 'GET',
         path : '/users',
         handler : function(request,h){
-            let obj = {};
-            for(const [key,value] of Object.entries(active_user_list)){
-                obj[key] = value.getPassword();
+            // let headers = request.headers;
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
             }
-            return h.response(obj).code(200);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            if(typeof resp != 'object'){
+                return h.response(resp).code(401);
+            }
+            // console.log('Response received : ',resp);
+            // console.log('Username after decoding from token : ',resp['uname']);
+            let uname = resp['uname'];
+            if(admin_user_list.includes(uname)){
+                let obj = {};
+                for(const [key,value] of Object.entries(active_user_list)){
+                    obj[key] = value.getPassword();
+                }
+                return h.response(obj).code(200);
+            }
+            else{
+                return h.response('User isn\'t admin So unable to perform the action').code(401);
+            }
+            
         }
     
     },
@@ -756,26 +892,38 @@ server.route(
         method : 'POST',
         path : '/product/outofstock',
         handler : function(request,h){
-            let payload = JSON.parse(request.payload),uname = payload["username"],item_name = payload['item name'];
-            console.log(payload);
-            console.log(uname);
-            console.log(uname in active_user_list);
-            if(uname == undefined || uname == '' || !(uname in active_user_list)){
-                return h.response('kindly provide valid username in request payload').code(400);
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
             }
-            else{
-                if(admin_user_list.includes(uname)){
-                    if(products[item_name] == undefined){
-                        return h.response('kindly provide valid item name in request payload').code(400);
-                    }
-                    else{
-                        products[item_name]['Out_of_stock'] = true;
-                        return h.response(`Item ${item_name} moved to Out Of Stock`).code(200);
-                    }
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            console.log('Resp after token validation : ',resp);
+            if(typeof resp != 'object'){
+                return h.response(resp).code(401);
+            }
+            // console.log('Response received : ',resp);
+            // console.log('Username after decoding from token : ',resp['uname']);
+            let uname = resp.uname;
+            if(admin_user_list.includes(uname)){
+                let payload = JSON.parse(request.payload),item_name = payload['item name'];
+                console.log(payload);
+                console.log(uname);
+                console.log(uname in active_user_list);
+                if(uname == undefined || uname == '' || !(uname in active_user_list)){
+                    return h.response('kindly provide valid username in request payload').code(400);
                 }
                 else{
-                    return h.response(`Mentioned user is not a Admin`).code(400);
+                        if(products[item_name] == undefined){
+                            return h.response('kindly provide valid item name in request payload').code(400);
+                        }
+                        else{
+                            products[item_name]['Out_of_stock'] = true;
+                            return h.response(`Item ${item_name} moved to Out Of Stock`).code(200);
+                        }
                 }
+            }
+            else{
+                return h.response('User isn\'t admin So unable to perform the action').code(401);
             }
             // for(const [key,value] of Object.entries(active_user_list)){
             //     obj[key] = value.getPassword();
