@@ -1,4 +1,7 @@
-const Hapi = require('hapi'),user = require('./User'),loggingFunction = require('./helperfunctions.js')
+const Hapi = require('hapi'),user = require('./User'),loggingFunction = require('./helperfunctions.js'),jwt = require('jsonwebtoken')
+// Jwt = require('@hapi/jwt')
+// const JWTAuth = require('hapi-auth-jwt2');
+console.log('arun');
 
 const categoryWithSubCategories = {};
 categoryWithSubCategories['electronics'] = {};
@@ -8,72 +11,124 @@ categoryWithSubCategories['clothes'] = {};
 categoryWithSubCategories['clothes']['tshirts'] = ['tshirt A','tshirt B','tshirt C'];
 categoryWithSubCategories['clothes']['jeans'] = ['jean A','jean B','jean C'];
 
+function tokenValidator(token){
+    let decoded = '';
+    jwt.verify(token, 'SECRET_KEY_ARUN',function(err,decodedd){
+        let resp = {};
+        if(err){
+            // resp['err'] = err;
+            return err;
+        }
+        else{
+            decoded = decodedd;
+        }
+    });
+    console.log('Decoded value : ',decoded);
+    console.log(typeof decoded);
+    if(typeof decoded != 'object'){
+        // console.log('AAA');
+        return 'Invalid token being passed in the header';
+    }
+    else{
+        let uname = decoded.user,pwd = decoded.pwd;
+        if(active_user_list[uname] == undefined){
+            // console.log('BBB');
+            return 'Invalid token being passed in the header';
+        }
+        else{
+            // console.log('UNAME : ',uname);
+            let userDetails = active_user_list[uname];
+            // console.log("USER DETAILS :: ",userDetails.getUsername());
+            // console.log("userDetails['password'] : ", userDetails.getPassword());
+            // console.log("pwd :: ",pwd);
+            if(userDetails.getPassword() != pwd){
+                // console.log('CCC');
+                return 'Invalid token being passed in the header';
+            }
+            else{
+                return 'success';
+            }
+        }
+    }
+}
 const products = {
     'jean A' : {
         name : 'jean A',
         available_sizes : '32,34,36,38',
         price_in_Rs : 1000,
-        discounted_price : 900
+        discounted_price : 900,
+        Out_of_stock : false
     },
     'jean B' : {
         name : 'jean B',
         available_sizes : '32,34',
         price_in_Rs : 1200,
-        discounted_price : 1150
+        discounted_price : 1150,
+        Out_of_stock : false
     },
     'jean C' : {
         name : 'jean C',
         available_sizes : '36,38',
         price_in_Rs : 15000,
-        discounted_price : 1300
+        discounted_price : 1300,
+        Out_of_stock : false
     },
     'tshirt A' : {
         name : 'tshirt A',
         available_sizes : '38,40,42,44',
         price_in_Rs : 500,
-        discounted_price : 450
+        discounted_price : 450,
+        Out_of_stock : false
     },
     'tshirt B' : {
         name : 'tshirt B',
         available_sizes : '40,42,44',
         price_in_Rs : 400,
-        discounted_price : 380
+        discounted_price : 380,
+        Out_of_stock : false
     },
     'tshirt C' : {
         name : 'tshirt C',
         available_sizes : '38,42,44',
         price_in_Rs : 200,
-        discounted_price : 190
+        discounted_price : 190,
+        Out_of_stock : false
     },
     'iphone14' : {
         name : 'iPhone 14 3GB RAM, 128GB internal',
         price_in_Rs : 60000,
-        discounted_price : 55000
+        discounted_price : 55000,
+        Out_of_stock : false
     },
     'oneplus10' : {
         name : 'OnePlus 10 8GB RAM, 128GB internal',
         price_in_Rs : 40000,
-        discounted_price : 33000
+        discounted_price : 33000,
+        Out_of_stock : false
     },
     'samsung galaxy Z1 ultra' : {
         name : 'Samsung Galaxy Z1 Ultra 12GB RAM, 256GB internal',
         price_in_Rs : 70000,
-        discounted_price : 66000
+        discounted_price : 66000,
+        Out_of_stock : false
     },
     'hp_64_gb' : {
         name : 'HP 64 GB Pendrive',
         price_in_Rs : 400,
-        discounted_price : 350
+        discounted_price : 350,
+        Out_of_stock : false
     },
     'sandish_64_gb' : {
         name : 'Sandisk 64 GB Pendrive',
         price_in_Rs : 200,
-        discounted_price : 150
+        discounted_price : 150,
+        Out_of_stock : false
     },
     'transcend_64_gb' : {
         name : 'Transcend 64 GB Pendrive',
         price_in_Rs : 300,
-        discounted_price : 250
+        discounted_price : 250,
+        Out_of_stock : false
     }
 };
 
@@ -95,13 +150,26 @@ let server = Hapi.server({
 });
 let active_user_list = {},admin_user_list = [],registered_email_ids = [],logs = {},userCartDetails = {},userOrderedItems = [];
 
+// const validate = async function (decoded, request, h) {
+ 
+//     // do your checks to see if the person is valid
+//     if (!(decoded.user in active_user_list)) {
+//       return { isValid: false };
+//     }
+//     else {
+//       return { isValid: true };
+//     }
+// };
+
 const init = async () => {
 
-    // server = Hapi.server({
-    //     port: 3000,
-    //     host: 'localhost'
-    // });
+    server = Hapi.server({
+        port: 3000,
+        host: 'localhost'
+    });
+    console.log('in init');
     await server.start();
+
     await server.register(require('hapi-geo-locate',(err) => {
             if(err){
                 throw err
@@ -109,6 +177,24 @@ const init = async () => {
         }
     
     ));
+
+    // server.auth.strategy('jwt', 'jwt',
+    // { 
+    //     key: 'NeverShareYourSecret', // Never Share your secret key
+    //     validate  // validate function defined above
+    // });
+    // server.auth.default('jwt');
+
+    // console.log('JWT registered');
+    // // await server.register([{
+    // //     plugin : require('hapi-auth-jwt2')
+    // // }])
+    // console.log('JWT registered');
+    // await server.register(Jwt,(err) => {
+    //     if(err){
+    //         throw err
+    //     }
+    // });
     console.log('Server started');
     console.log('Info about the server : ',server.info); 
     /*
@@ -127,6 +213,57 @@ const init = async () => {
     // console.log('Server running on %s', server.info.uri);
 };
 
+// const validate = async function (artifacts,decoded, request, h) {
+ 
+//     let payload = artifacts.decoded.payload,uname = payload.user;
+//         if(!(active_user_list.includes(uname))){
+//             return {isValid : false};
+//         }
+//         else{
+//             let userdetails = active_user_list[uname];
+//             if(userdetails['email'] != payload.email || userdetails['password'] != payload.pwd){
+//                 return {isValid : false};
+//             }
+//             else{
+//                 return {isValid : true};
+//             }
+//         }
+// };
+
+// server.auth.strategy('login', 'jwt', {
+//     key: 'topSecretKey_ToBePutInFileInProductionEnv',
+//     validate ,
+//     verifyOptions: {
+//         algorithm: ['HS256'],
+//     },
+// });
+
+// server.auth.strategy('login','jwt',{
+//     keys : 'some_shared_secret',
+//     verify: {
+//         aud: 'urn:audience:test',
+//         iss: 'urn:issuer:test',
+//         maxAgeSec: 14400, // 4 hours
+//     },
+//     validate: (artifacts, request, h) => {
+//         return {isValid : true};
+//         // let payload = artifacts.decoded.payload,uname = payload.user;
+//         // if(!(active_user_list.includes(uname))){
+//         //     return {isValid : false};
+//         // }
+//         // else{
+//         //     let userdetails = active_user_list[uname];
+//         //     if(userdetails['email'] != payload.email || userdetails['password'] != payload.pwd){
+//         //         return {isValid : false};
+//         //     }
+//         //     else{
+//         //         return {isValid : true};
+//         //     }
+//         // }
+//     }
+
+// });
+// server.auth.default('login');
 process.on('unhandledRejection', (err) => {
 
     console.log(err);
@@ -147,6 +284,54 @@ server.route(
         method : 'GET',
         path : '/getAllProducts',
         handler : function(request,h){
+            let headers = request.headers;
+            // console.log('Header details : ',headers);
+            let authHeader = headers['authorization'];
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            if(resp != 'success'){
+                return h.response(resp).code(401);
+            }
+            console.log('Response received : ',resp);
+            // console.log('Token value : ',token);
+            // let decoded = jwt.verify(token, 'SECRET_KEY_ARUN');
+            // let decoded = 'arun';
+            // jwt.verify(token, 'SECRET_KEY_ARUN',function(err,decodedd){
+            //     let resp = {};
+            //     if(err){
+            //         resp['err'] = err;
+            //         return h.response(resp).code(401);
+            //     }
+            //     else{
+            //         decoded = decodedd;
+            //     }
+            // });
+            // console.log('Decoded value : ',decoded);
+            // console.log(typeof decoded);
+            // if(typeof decoded != 'object'){
+            //     console.log('AAA');
+            //     return h.response('Invalid token being passed in the header').code(401);
+            // }
+            // else{
+            //     let uname = decoded.user,pwd = decoded.pwd;
+            //     if(active_user_list[uname] == undefined){
+            //         console.log('BBB');
+            //         return h.response('Invalid token being passed in the header').code(401);
+            //     }
+            //     else{
+            //         console.log('UNAME : ',uname);
+            //         let userDetails = active_user_list[uname];
+            //         console.log("USER DETAILS :: ",userDetails.getUsername());
+            //         console.log("userDetails['password'] : ", userDetails.getPassword());
+            //         console.log("pwd :: ",pwd);
+            //         if(userDetails.getPassword() != pwd){
+            //             console.log('CCC');
+            //             return h.response('Invalid token being passed in the header').code(401);
+            //         }
+            //     }
+            // }
             let query_params = request.query,category = query_params['category'],obj = {};
             if(category == undefined){
                 obj.products = products;
@@ -398,10 +583,13 @@ server.route(
             if(uname == undefined || uname == '' || !(uname in active_user_list)){
                 return h.response('kindly provide valid username in request payload').code(400);
             }
-            let total_price_of_ordered_items =  0;
+            let total_price_of_ordered_items =  0,unplaced_items = [];
             for(const [key,value] of Object.entries(itemsAndQuantities)){
                 if(!(key in products)){
                     return h.response(`Invalid item name : ${key} being passed`).code(400);
+                }
+                if(products[key]['Out_of_stock'] == true){
+                    unplaced_items.push(key);
                 }
                 let quantity = Number(value);
                 console.log('QUANTITY : ',quantity);
@@ -424,7 +612,16 @@ server.route(
             userAlreadyOrderedItems.push(invoice);
             userOrderedItems[uname] = userAlreadyOrderedItems;
             logs[uname] = loggingFunction.loggingTheActionToGlobalVariable(`User placed an order`,request.location,logs[uname]);
-            return h.response('Items has been placed successfully').code(200);
+            let resObj = {};
+            resObj["message"] = 'Items has been placed successfully';
+            // let resObj["unplaced items"] = {};
+            if(unplaced_items.length > 0){
+                // let resObj['unplaced_items'] = new Object();
+                resObj['unplaced_items'] = unplaced_items;
+                // resObj.unplaced_items["item list"] = unplaced_items;
+                // resObj.unplaced_items["reason"] = 'Above items are Out of Stock So unable to place order for them';
+            }
+            return h.response(resObj).code(200);
         }
     },
     {
@@ -438,6 +635,9 @@ server.route(
             }
             if(!(item_name in products)){
                 return h.response('Item name is invalid.Kindly mention it properly').code(400);
+            }
+            if(products[item_name]['Out_of_stock'] == true){
+                return h.response(`Item is Out of Stock now So unable to place order for them`).code(200);
             }
             let previousOrderedItems = userOrderedItems[uname];
             if(previousOrderedItems == undefined){
@@ -514,10 +714,16 @@ server.route(
             if(uname in active_user_list){
                 let userdetails = active_user_list[uname];
                 if(userdetails.getPassword() == pwd){
-                    msg = 'Successfully logged into the account';
+                    let resp = {};
+                    let token = jwt.sign({ 
+                        user : uname,
+                        pwd : pwd,
+                    }, 'SECRET_KEY_ARUN');
+                    resp.msg = 'Successfully logged into the account';
+                    resp.token = token;
                     logs[uname] = loggingFunction.loggingTheActionToGlobalVariable(msg,request.location,logs[uname]);
                     console.log('Inside GET sign in request',logs[uname]);
-                    return h.response(msg).code(201);
+                    return h.response(resp).code(201);
                 }
                 else{
                     msg = 'Entered password is wrong';
@@ -548,6 +754,37 @@ server.route(
     },
     {
         method : 'POST',
+        path : '/product/outofstock',
+        handler : function(request,h){
+            let payload = JSON.parse(request.payload),uname = payload["username"],item_name = payload['item name'];
+            console.log(payload);
+            console.log(uname);
+            console.log(uname in active_user_list);
+            if(uname == undefined || uname == '' || !(uname in active_user_list)){
+                return h.response('kindly provide valid username in request payload').code(400);
+            }
+            else{
+                if(admin_user_list.includes(uname)){
+                    if(products[item_name] == undefined){
+                        return h.response('kindly provide valid item name in request payload').code(400);
+                    }
+                    else{
+                        products[item_name]['Out_of_stock'] = true;
+                        return h.response(`Item ${item_name} moved to Out Of Stock`).code(200);
+                    }
+                }
+                else{
+                    return h.response(`Mentioned user is not a Admin`).code(400);
+                }
+            }
+            // for(const [key,value] of Object.entries(active_user_list)){
+            //     obj[key] = value.getPassword();
+            // }
+            // return h.response(obj).code(200);
+        }
+    },
+    {
+        method : 'POST',
         path : '/makeuseradmin',
         handler : function(request,h){
             let queryparams = request.query,uname = queryparams['username'];
@@ -570,10 +807,10 @@ server.route(
                     return h.response(`Added user : ${uname} as Admin`).code(200);
                 }
             }
-            for(const [key,value] of Object.entries(active_user_list)){
-                obj[key] = value.getPassword();
-            }
-            return h.response(obj).code(200);
+            // for(const [key,value] of Object.entries(active_user_list)){
+            //     obj[key] = value.getPassword();
+            // }
+            // return h.response(obj).code(200);
         }
     },
     {
@@ -584,23 +821,23 @@ server.route(
             try{
                 let query_params = JSON.parse(request.payload);
                 // console.log(typeof query_params);
-    
-                if((query_params['username'] == undefined || query_params['username'] == "" ) || (query_params['password'] == undefined || query_params['password'] == "" ) || (query_params['email'] == undefined || query_params['email'] == "" )){
+                let uname = query_params['username'],pwd = query_params['password'],email = query_params['email'];
+                if((uname == undefined || uname == "" ) || (pwd == undefined || pwd == "" ) || (email == undefined || email == "" )){
                     return h.response('Username, Password and Email id is a mandatory field kindly provide them').code(400);
                 }
-                if(registered_email_ids.includes(query_params['email'])){
+                if(registered_email_ids.includes(email)){
                     return h.response('Email ID provided is already being registered').code(400);
                 }
-                if(query_params['username'] in active_user_list){
+                if(uname in active_user_list){
                     return h.response('User Name isn\'t available Kindly provide some other names').code(400);
                 }
     
-                let obj = {},uname = query_params['username'];
-                obj.uname = query_params['username'];
-                obj.pwd = query_params['password'];
+                let obj = {};
+                obj.uname = uname;
+                obj.pwd = pwd;
                 obj.fname = query_params['first_name'];
                 obj.lname = query_params['last_name'];
-                obj.email = query_params['email'];
+                obj.email = email;
                 obj.phone = query_params['phone'];
     
                 let userObj = new user(obj);
@@ -611,7 +848,34 @@ server.route(
                 let ip_address = request.location;
                 console.log('User ip address : ',ip_address);
                 logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('Successfully created account for the user',request.location,logs[uname]);
+
+                // let token = Jwt.token.generate(
+                //     {
+                //         aud: 'urn:audience:test',
+                //         iss: 'urn:issuer:test',
+                //         user: uname,
+                //         pwd : query_params['password'],
+                //         email : query_params['email'],
+                //         group: 'hapi_community'
+                //     },
+                //     {
+                //         key: 'topSecretKey_ToBePutInFileInProductionEnv',
+                //         algorithm: 'HS512'
+                //     },
+                //     {
+                //         ttlSec: 14400 // 4 hours
+                //     });
+                // let token = jwt.sign({ 
+                //     user : uname,
+                //     pwd : pwd,
+                //     email : email
+                // }, 'SECRET_KEY_ARUN');
+                // console.log('Newly created token value is ',token);
+
                 console.log('Inside POST sign up request',logs[uname]);
+                // let resp =  {};
+                // // resp["token"] = token;
+                // resp["msg = 'Successfully created account';
                 return h.response('Successfully created account').code(200);
             }
             catch(err){
