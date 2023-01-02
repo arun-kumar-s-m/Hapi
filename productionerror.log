@@ -1,0 +1,423 @@
+{"level":"info","message":"Info"}
+{"level":"warn","message":"Warn"}
+{"level":"error","message":"Error"}
+{"level":"error"}
+{"level":"info","message":"Info"}
+{"level":"warn","message":"Warn"}
+{"level":"error","message":"Error"}
+{"level":"error"}
+2023-01-01T06:49:13.938Z [info] Info
+2023-01-01T06:49:13.939Z [warn] Warn
+2023-01-01T06:49:13.939Z [error] Error
+2023-01-01T06:49:13.939Z [error] Testing the custom error thrown
+2023-01-01T06:53:06.496Z [INFO] Info
+2023-01-01T06:53:06.497Z [WARN] Warn
+2023-01-01T06:53:06.497Z [ERROR] Error
+2023-01-01T06:53:06.497Z [ERROR] Testing the custom error thrown
+2023-01-01T06:59:26.675Z [INFO] Info
+2023-01-01T06:59:26.675Z [WARN] Warn
+2023-01-01T06:59:26.675Z [ERROR] Error
+2023-01-01T06:59:26.675Z [ERROR] Testing the custom error thrown
+2023-01-01T07:01:26.700Z [INFO] undefined Info
+2023-01-01T07:01:26.701Z [WARN] undefined Warn
+2023-01-01T07:01:26.701Z [ERROR] undefined Error
+2023-01-01T07:01:26.701Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:02:33.767Z [INFO] undefined Info
+2023-01-01T07:02:33.768Z [WARN] undefined Warn
+2023-01-01T07:02:33.768Z [ERROR] undefined Error
+2023-01-01T07:02:33.768Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:02:48.467Z [INFO] Info
+2023-01-01T07:02:48.468Z [WARN] Warn
+2023-01-01T07:02:48.468Z [ERROR] Error
+2023-01-01T07:02:48.468Z [ERROR] Testing the custom error thrown
+2023-01-01T07:03:30.314Z [INFO] Info [object Object]
+2023-01-01T07:03:30.316Z [WARN] Warn [object Object]
+2023-01-01T07:03:30.316Z [ERROR] Error [object Object]
+2023-01-01T07:03:30.316Z [ERROR] Testing the custom error thrown [object Object]
+2023-01-01T07:04:24.094Z [INFO] Info [object Object]
+2023-01-01T07:04:24.098Z [WARN] Warn [object Object]
+2023-01-01T07:04:24.099Z [ERROR] Error [object Object]
+2023-01-01T07:04:24.099Z [ERROR] Testing the custom error thrown [object Object]
+2023-01-01T07:05:29.276Z [INFO] Info 192.192.192.75
+2023-01-01T07:05:29.279Z [WARN] Warn undefined
+2023-01-01T07:05:29.279Z [ERROR] Error undefined
+2023-01-01T07:05:29.279Z [ERROR] Testing the custom error thrown undefined
+2023-01-01T07:05:40.796Z [INFO] 192.192.192.75 Info
+2023-01-01T07:05:40.799Z [WARN] undefined Warn
+2023-01-01T07:05:40.799Z [ERROR] undefined Error
+2023-01-01T07:05:40.799Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:06:49.089Z [INFO] 192.192.192.75 Info
+2023-01-01T07:06:49.092Z [WARN] undefined Warn
+2023-01-01T07:06:49.092Z [ERROR] undefined Error
+2023-01-01T07:06:49.093Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:06:57.298Z [INFO] 192.192.192.75 Info
+2023-01-01T07:06:57.300Z [WARN] undefined Warn
+2023-01-01T07:06:57.300Z [ERROR] undefined Error
+2023-01-01T07:06:57.300Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:08:59.530Z [INFO] undefined Info
+2023-01-01T07:08:59.532Z [WARN] undefined Warn
+2023-01-01T07:08:59.532Z [ERROR] undefined Error
+2023-01-01T07:08:59.533Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:09:07.802Z [INFO] undefined Info
+2023-01-01T07:09:07.802Z [WARN] undefined Warn
+2023-01-01T07:09:07.802Z [ERROR] undefined Error
+2023-01-01T07:09:07.802Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:10:01.941Z [INFO] 192.192.192.75 Info
+2023-01-01T07:10:01.942Z [WARN] 192.192.192.75 Warn
+2023-01-01T07:10:01.942Z [ERROR] 192.192.192.75 Error
+2023-01-01T07:10:01.942Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:12:47.484Z [INFO] 192.192.192.75 Info
+2023-01-01T07:12:47.485Z [WARN] 192.192.192.75 Warn
+2023-01-01T07:12:47.485Z [ERROR] 192.192.192.75 Error
+2023-01-01T07:12:47.485Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:13:38.677Z [INFO] 192.192.192.75 Info
+2023-01-01T07:13:38.677Z [WARN] 192.192.192.75 Warn
+2023-01-01T07:13:38.678Z [ERROR] 192.192.192.75 Error
+2023-01-01T07:13:38.678Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:14:12.027Z [INFO] 192.192.192.75 Info
+2023-01-01T07:14:12.028Z [WARN] 192.192.192.75 Warn
+2023-01-01T07:14:12.029Z [ERROR] 192.192.192.75 Error
+2023-01-01T07:14:12.029Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:16:23.350Z [INFO] 192.192.192.75 Info
+2023-01-01T07:16:23.350Z [WARN] 192.192.192.75 Warn
+2023-01-01T07:16:23.350Z [ERROR] 192.192.192.75 Error
+2023-01-01T07:16:23.350Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:17:01.025Z [INFO] 192.192.192.75 Info
+2023-01-01T07:17:01.025Z [WARN] 192.192.192.75 Warn
+2023-01-01T07:17:01.026Z [ERROR] 192.192.192.75 Error
+2023-01-01T07:17:01.026Z [ERROR] undefined Testing the custom error thrown
+2023-01-01T07:17:21.275Z [INFO] 192.192.192.75 /signup Info
+2023-01-01T07:17:21.275Z [WARN] 192.192.192.75 /signin Warn
+2023-01-01T07:17:21.275Z [ERROR] 192.192.192.75 /form Error
+2023-01-01T07:17:21.275Z [ERROR] undefined undefined Testing the custom error thrown
+2023-01-01T07:17:54.052Z [INFO] 192.192.192.75 /signup Info
+2023-01-01T07:17:54.052Z [WARN] 192.192.192.75 /signin Warn
+2023-01-01T07:17:54.052Z [ERROR] 192.192.192.75 /form Error
+2023-01-01T07:17:54.053Z [ERROR] undefined undefined Testing the custom error thrown
+2023-01-01T07:18:06.230Z [INFO] 192.192.192.75 /signup Info
+2023-01-01T07:18:06.231Z [WARN] 192.192.192.75 /signin Warn
+2023-01-01T07:18:06.231Z [ERROR] 192.192.192.75 /form Error
+2023-01-01T07:18:06.231Z [ERROR] undefined undefined Testing the custom error thrown
+2023-01-01T07:18:16.311Z [INFO] 192.192.192.75 /signup Info
+2023-01-01T07:18:16.312Z [WARN] 192.192.192.75 /signin Warn
+2023-01-01T07:18:16.312Z [ERROR] 192.192.192.75 /form Error
+2023-01-01T07:18:16.312Z [ERROR] undefined undefined Testing the custom error thrown
+2023-01-01T07:18:34.304Z [INFO] 192.192.192.75 /signup GET Info
+2023-01-01T07:18:34.304Z [WARN] 192.192.192.75 /signin POST Warn
+2023-01-01T07:18:34.304Z [ERROR] 192.192.192.75 /form PUT Error
+2023-01-01T07:18:34.304Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T07:18:59.435Z [INFO] 192.192.192.75 GET /signup Info
+2023-01-01T07:18:59.436Z [WARN] 192.192.192.75 POST /signin Warn
+2023-01-01T07:18:59.436Z [ERROR] 192.192.192.75 PUT /form Error
+2023-01-01T07:18:59.436Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:06:02.171Z [INFO] 192.192.192.75 GET /signup Info
+2023-01-01T16:06:02.172Z [WARN] 192.192.192.75 POST /signin Warn
+2023-01-01T16:06:02.172Z [ERROR] 192.192.192.75 PUT /form Error
+2023-01-01T16:06:02.172Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:07:23.885Z [INFO] 192.192.192.75 GET /signup Info
+2023-01-01T16:07:23.886Z [WARN] 192.192.192.75 POST /signin Warn
+2023-01-01T16:07:23.886Z [ERROR] 192.192.192.75 PUT /form Error
+2023-01-01T16:07:23.886Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:10:29.714Z [INFO] 192.192.192.75 GET /signup Info
+2023-01-01T16:10:29.715Z [WARN] 192.192.192.75 POST /signin Warn
+2023-01-01T16:10:29.715Z [ERROR] 192.192.192.75 PUT /form Error
+2023-01-01T16:10:29.715Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:11:17.209Z [INFO] 192.192.192.75 GET /signup Info
+2023-01-01T16:11:17.209Z [WARN] 192.192.192.75 POST /signin Warn
+2023-01-01T16:11:17.209Z [ERROR] 192.192.192.75 PUT /form Error
+2023-01-01T16:11:17.209Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:12:22.888Z [INFO] 192.192.192.75 GET /signup Info
+2023-01-01T16:12:22.888Z [WARN] 192.192.192.75 POST /signin Warn
+2023-01-01T16:12:22.888Z [ERROR] 192.192.192.75 PUT /form Error
+2023-01-01T16:12:22.888Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:12:26.787Z [ERROR] [object Object] put /user/signup Unable to create account at this moment with user name as : ${uname}
+2023-01-01T16:14:50.145Z [INFO] 192.192.192.75 GET /signup Info
+2023-01-01T16:14:50.146Z [WARN] 192.192.192.75 POST /signin Warn
+2023-01-01T16:14:50.146Z [ERROR] 192.192.192.75 PUT /form Error
+2023-01-01T16:14:50.146Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:14:55.365Z [INFO] 192.192.192.75 GET /signup Info
+2023-01-01T16:14:55.366Z [WARN] 192.192.192.75 POST /signin Warn
+2023-01-01T16:14:55.366Z [ERROR] 192.192.192.75 PUT /form Error
+2023-01-01T16:14:55.366Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:14:59.105Z [INFO] undefined undefined undefined Inside POST sign up request
+2023-01-01T16:14:59.105Z [INFO] undefined undefined undefined Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-01T16:14:59.106Z [INFO] [object Object] put /user/signup Successfully created account with user name as : ${uname}
+2023-01-01T16:20:18.950Z [INFO] 192.192.192.75 GET /signup Info
+2023-01-01T16:20:18.952Z [WARN] 192.192.192.75 POST /signin Warn
+2023-01-01T16:20:18.953Z [ERROR] 192.192.192.75 PUT /form Error
+2023-01-01T16:20:18.953Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:20:56.874Z [INFO] 192.192.192.75 GET /signup Info
+2023-01-01T16:20:56.875Z [WARN] 192.192.192.75 POST /signin Warn
+2023-01-01T16:20:56.875Z [ERROR] 192.192.192.75 PUT /form Error
+2023-01-01T16:20:56.875Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:21:19.492Z [INFO] 192.192.192.75 GET /signup Info
+2023-01-01T16:21:19.492Z [WARN] 192.192.192.75 POST /signin Warn
+2023-01-01T16:21:19.493Z [ERROR] 192.192.192.75 PUT /form Error
+2023-01-01T16:21:19.493Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:21:25.962Z [INFO] [object Object] put /user/signup Inside POST sign up request with REMOTE IP and other details  ::: 
+2023-01-01T16:21:25.962Z [INFO] [object Object] put /user/signup Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-01T16:21:25.963Z [INFO] [object Object] put /user/signup Successfully created account with user name as : arun44
+2023-01-01T16:22:35.777Z [INFO] 192.192.192.75 GET /signup Info
+2023-01-01T16:22:35.777Z [WARN] 192.192.192.75 POST /signin Warn
+2023-01-01T16:22:35.777Z [ERROR] 192.192.192.75 PUT /form Error
+2023-01-01T16:22:35.777Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:22:56.404Z [INFO] 192.192.192.75 GET /SIGNUP Info
+2023-01-01T16:22:56.405Z [WARN] 192.192.192.75 POST /SIGNIN Warn
+2023-01-01T16:22:56.405Z [ERROR] 192.192.192.75 PUT /FORM Error
+2023-01-01T16:22:56.405Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:25:29.680Z [INFO] 192.192.192.75 GET /SIGNUP Info
+2023-01-01T16:25:29.681Z [WARN] 192.192.192.75 POST /SIGNIN Warn
+2023-01-01T16:25:29.681Z [ERROR] 192.192.192.75 PUT /FORM Error
+2023-01-01T16:25:29.681Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:26:48.355Z [INFO] 192.192.192.75 GET /SIGNUP Info
+2023-01-01T16:26:48.356Z [WARN] 192.192.192.75 POST /SIGNIN Warn
+2023-01-01T16:26:48.356Z [ERROR] 192.192.192.75 PUT /FORM Error
+2023-01-01T16:26:48.356Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:27:10.828Z [INFO] 192.192.192.75 GET /SIGNUP Info
+2023-01-01T16:27:10.828Z [WARN] 192.192.192.75 POST /SIGNIN Warn
+2023-01-01T16:27:10.829Z [ERROR] 192.192.192.75 PUT /FORM Error
+2023-01-01T16:27:10.829Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:27:17.080Z [INFO] [object Object] put /USER/SIGNUP Inside POST sign up request with REMOTE IP and other details  ::: 
+2023-01-01T16:27:17.080Z [INFO] [object Object] put /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-01T16:27:17.081Z [INFO] [object Object] put /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-01T16:28:36.215Z [INFO] 192.192.192.75 GET /SIGNUP Info
+2023-01-01T16:28:36.216Z [WARN] 192.192.192.75 POST /SIGNIN Warn
+2023-01-01T16:28:36.216Z [ERROR] 192.192.192.75 PUT /FORM Error
+2023-01-01T16:28:36.216Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:28:46.654Z [INFO] 127.0.0.1 put /USER/SIGNUP Inside POST sign up request with REMOTE IP and other details  ::: 
+2023-01-01T16:28:46.654Z [INFO] [object Object] put /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-01T16:28:46.654Z [INFO] [object Object] put /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-01T16:30:03.737Z [INFO] 192.192.192.75 GET /SIGNUP Info
+2023-01-01T16:30:03.738Z [WARN] 192.192.192.75 POST /SIGNIN Warn
+2023-01-01T16:30:03.738Z [ERROR] 192.192.192.75 PUT /FORM Error
+2023-01-01T16:30:03.738Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:30:06.833Z [INFO] 127.0.0.1 put /USER/SIGNUP Inside POST sign up request with REMOTE IP and other details  ::: 
+2023-01-01T16:30:06.834Z [INFO] 127.0.0.1 put /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-01T16:30:06.834Z [INFO] 127.0.0.1 put /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-01T16:31:03.310Z [INFO] 192.192.192.75 GET /SIGNUP Info
+2023-01-01T16:31:03.311Z [WARN] 192.192.192.75 POST /SIGNIN Warn
+2023-01-01T16:31:03.311Z [ERROR] 192.192.192.75 PUT /FORM Error
+2023-01-01T16:31:03.311Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-01T16:31:21.941Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with REMOTE IP and other details  ::: 
+2023-01-01T16:31:21.941Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-01T16:31:21.942Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-01T16:32:40.108Z [INFO] 192.192.192.75 GET /SIGNUP Info
+2023-01-01T16:32:40.109Z [WARN] 192.192.192.75 POST /SIGNIN Warn
+2023-01-01T16:32:40.109Z [ERROR] 192.192.192.75 PUT /FORM Error
+2023-01-01T16:32:40.109Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-02T04:34:43.741Z [INFO] 192.192.192.75 GET /SIGNUP Info
+2023-01-02T04:34:43.741Z [WARN] 192.192.192.75 POST /SIGNIN Warn
+2023-01-02T04:34:43.741Z [ERROR] 192.192.192.75 PUT /FORM Error
+2023-01-02T04:34:43.741Z [ERROR] undefined undefined undefined Testing the custom error thrown
+2023-01-02T04:35:00.187Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T04:35:00.187Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T04:35:00.187Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T04:35:58.295Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T04:35:58.299Z [ERROR] 127.0.0.1 GET /USER/SIGNIN User provided invalid username in the request arun44
+2023-01-02T04:36:13.239Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T04:36:13.239Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T04:36:13.239Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T04:36:21.760Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T04:36:21.761Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T04:36:40.472Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4443
+2023-01-02T04:36:40.472Z [ERROR] 127.0.0.1 GET /USER/SIGNIN Entered password is wrong for uname :  arun44
+2023-01-02T04:36:56.817Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun43 password : 4445
+2023-01-02T04:36:56.817Z [ERROR] 127.0.0.1 GET /USER/SIGNIN User provided invalid username in the request arun43
+2023-01-02T04:58:25.624Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T04:58:25.625Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T04:58:25.625Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T04:58:43.308Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T04:58:43.308Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T04:59:29.513Z [INFO] 127.0.0.1 [OBJECT OBJECT] /ADDTOCART Inside POST addtocart request
+2023-01-02T04:59:29.514Z [WARN] 127.0.0.1 [OBJECT OBJECT] /ADDTOCART Header value is missing in the request 
+2023-01-02T05:00:32.486Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T05:00:32.487Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T05:00:32.487Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T05:00:41.496Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T05:00:41.496Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T05:00:56.467Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T05:00:56.467Z [WARN] 127.0.0.1 POST /ADDTOCART Header value is missing in the request 
+2023-01-02T05:01:27.092Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T05:01:27.095Z [WARN] 127.0.0.1 POST /ADDTOCART Decoded value of the token isn't an object 
+2023-01-02T05:01:43.826Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T05:01:43.834Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : undefined
+2023-01-02T05:01:43.835Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : jean B
+2023-01-02T05:01:43.835Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : jean B
+2023-01-02T05:02:11.746Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T05:02:11.750Z [INFO] 127.0.0.1 POST /ADDTOCART There isn't a key in products with the mentioned item name : jean BCC
+2023-01-02T05:03:59.019Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T05:03:59.021Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : jean B
+2023-01-02T05:03:59.021Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : jean B,jean C
+2023-01-02T05:03:59.021Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : jean C
+2023-01-02T05:11:57.409Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T05:11:57.410Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T05:11:57.410Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T05:12:06.973Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T05:12:06.974Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T05:12:31.110Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T05:12:31.123Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : undefined
+2023-01-02T05:12:31.124Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : jean C
+2023-01-02T05:12:31.124Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : jean C
+2023-01-02T05:12:39.535Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T05:12:39.541Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : jean C
+2023-01-02T05:12:39.541Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : jean C,tshirt A
+2023-01-02T05:12:39.541Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : tshirt A
+2023-01-02T05:13:39.569Z [INFO] 127.0.0.1 POST /GETCART/BUY Inside the request
+2023-01-02T05:13:39.572Z [INFO] 127.0.0.1 POST /GETCART/BUY Decoded value isn't an object
+2023-01-02T05:13:47.362Z [INFO] 127.0.0.1 POST /GETCART/BUY Inside the request
+2023-01-02T05:13:47.365Z [INFO] 127.0.0.1 POST /GETCART/BUY Item name being passed is invalid :::: iphone145
+2023-01-02T05:14:24.565Z [INFO] 127.0.0.1 POST /GETCART/BUY Inside the request
+2023-01-02T05:14:24.567Z [INFO] 127.0.0.1 POST /GETCART/BUY User ordered items before adding current items : undefined
+2023-01-02T05:14:24.567Z [INFO] 127.0.0.1 POST /GETCART/BUY User ordered items after adding current items : [object Object]
+2023-01-02T05:14:24.567Z [INFO] 127.0.0.1 POST /GETCART/BUY Orders has been successfully placed
+2023-01-02T05:18:10.400Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T05:18:10.400Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T05:18:10.400Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T05:18:25.254Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T05:18:25.254Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T05:18:42.197Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T05:18:42.209Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : undefined
+2023-01-02T05:18:42.209Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : tshirt A
+2023-01-02T05:18:42.210Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : tshirt A
+2023-01-02T05:18:45.950Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T05:18:45.953Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : tshirt A
+2023-01-02T05:18:45.953Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : tshirt A,tshirt C
+2023-01-02T05:18:45.953Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : tshirt C
+2023-01-02T05:19:07.367Z [INFO] 127.0.0.1 POST /GETCART/BUY Inside the request
+2023-01-02T05:19:07.368Z [INFO] 127.0.0.1 POST /GETCART/BUY User ordered items before adding current items : undefined
+2023-01-02T05:19:07.369Z [INFO] 127.0.0.1 POST /GETCART/BUY User ordered items after adding current items : [{"jean C":{"item_name":"jean C","quantity":4,"unit price":1300,"total price":5200},"iphone14":{"item_name":"iphone14","quantity":2,"unit price":55000,"total price":110000},"samsung galaxy Z1 ultra":{"item_name":"samsung galaxy Z1 ultra","quantity":3,"unit price":66000,"total price":198000},"total_price_in_rupees":313200}]
+2023-01-02T05:19:07.370Z [INFO] 127.0.0.1 POST /GETCART/BUY Orders has been successfully placed
+2023-01-02T05:28:11.031Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T05:28:11.032Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T05:28:11.032Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T05:28:18.794Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T05:28:18.795Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T05:28:39.870Z [INFO] 127.0.0.1 POST /BUY User ordered items before adding current items : undefined
+2023-01-02T05:28:39.871Z [INFO] 127.0.0.1 POST /BUY User ordered items before adding current items : [{"item_name":"iphone14","quantity":3,"unit price":55000,"total price":165000,"total_price_in_rupees":165000}]
+2023-01-02T05:28:39.872Z [INFO] 127.0.0.1 POST /BUY Item :  iphone14 has been placed successfully
+2023-01-02T05:30:33.418Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T05:30:33.419Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T05:30:33.420Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T05:30:40.553Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T05:30:40.553Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T05:30:58.623Z [INFO] 127.0.0.1 POST /BUY Inside /buy request
+2023-01-02T05:30:58.631Z [WARN] 127.0.0.1 POST /BUY Item name being passed is invalid :::: iphone1dsf4
+2023-01-02T05:33:06.444Z [INFO] 127.0.0.1 POST /BUY Inside /buy request
+2023-01-02T05:33:06.446Z [WARN] 127.0.0.1 POST /BUY Item name being passed is currently Out of Stock :::: iphone14
+2023-01-02T05:38:40.646Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T05:38:40.647Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T05:38:40.648Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T05:38:48.925Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T05:38:48.927Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T05:39:04.465Z [INFO] 127.0.0.1 POST /BUY Inside /buy request
+2023-01-02T05:39:04.476Z [INFO] 127.0.0.1 POST /BUY User ordered items before adding current items : undefined
+2023-01-02T05:39:04.477Z [INFO] 127.0.0.1 POST /BUY User ordered items before adding current items : [{"item_name":"iphone14","quantity":3,"unit price":55000,"total price":165000,"total_price_in_rupees":165000}]
+2023-01-02T05:39:04.477Z [INFO] 127.0.0.1 POST /BUY Item :  iphone14 has been placed successfully
+2023-01-02T05:39:12.924Z [INFO] 127.0.0.1 POST /BUY Inside /buy request
+2023-01-02T05:39:12.930Z [INFO] 127.0.0.1 POST /BUY User ordered items before adding current items : [{"item_name":"iphone14","quantity":3,"unit price":55000,"total price":165000,"total_price_in_rupees":165000}]
+2023-01-02T05:39:12.930Z [INFO] 127.0.0.1 POST /BUY User ordered items before adding current items : [{"item_name":"iphone14","quantity":3,"unit price":55000,"total price":165000,"total_price_in_rupees":165000},{"item_name":"jean C","quantity":3,"unit price":1300,"total price":3900,"total_price_in_rupees":3900}]
+2023-01-02T05:39:12.931Z [INFO] 127.0.0.1 POST /BUY Item :  jean C has been placed successfully
+2023-01-02T05:39:21.030Z [INFO] 127.0.0.1 POST /BUY Inside /buy request
+2023-01-02T05:39:21.032Z [WARN] 127.0.0.1 POST /BUY Item name being passed is invalid :::: tshirtss C
+2023-01-02T05:39:36.746Z [INFO] 127.0.0.1 POST /BUY Inside /buy request
+2023-01-02T05:39:36.749Z [INFO] 127.0.0.1 POST /BUY User ordered items before adding current items : [{"item_name":"iphone14","quantity":3,"unit price":55000,"total price":165000,"total_price_in_rupees":165000},{"item_name":"jean C","quantity":3,"unit price":1300,"total price":3900,"total_price_in_rupees":3900}]
+2023-01-02T05:39:36.750Z [INFO] 127.0.0.1 POST /BUY User ordered items before adding current items : [{"item_name":"iphone14","quantity":3,"unit price":55000,"total price":165000,"total_price_in_rupees":165000},{"item_name":"jean C","quantity":3,"unit price":1300,"total price":3900,"total_price_in_rupees":3900},{"item_name":"tshirt A","quantity":2,"unit price":450,"total price":900,"total_price_in_rupees":900}]
+2023-01-02T05:39:36.750Z [INFO] 127.0.0.1 POST /BUY Item :  tshirt A has been placed successfully
+2023-01-02T05:39:59.908Z [INFO] 127.0.0.1 GET /GETORDEREDITEMS Inside /getordereditems request
+2023-01-02T05:39:59.911Z [INFO] 127.0.0.1 GET /GETORDEREDITEMS Successfully responded with the ordered details to the user [{"item_name":"iphone14","quantity":3,"unit price":55000,"total price":165000,"total_price_in_rupees":165000},{"item_name":"jean C","quantity":3,"unit price":1300,"total price":3900,"total_price_in_rupees":3900},{"item_name":"tshirt A","quantity":2,"unit price":450,"total price":900,"total_price_in_rupees":900}]
+2023-01-02T05:40:32.009Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T05:40:32.011Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : undefined
+2023-01-02T05:40:32.012Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : tshirt C
+2023-01-02T05:40:32.013Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : tshirt C
+2023-01-02T05:40:37.675Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T05:40:37.677Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : tshirt C
+2023-01-02T05:40:37.678Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : tshirt C,jean B
+2023-01-02T05:40:37.678Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : jean B
+2023-01-02T05:40:56.386Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T05:40:56.388Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : tshirt C,jean B
+2023-01-02T05:40:56.389Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : tshirt C,jean B,samsung galaxy Z1 ultra
+2023-01-02T05:40:56.389Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : samsung galaxy Z1 ultra
+2023-01-02T05:41:31.907Z [INFO] 127.0.0.1 POST /GETCART/BUY Inside the request
+2023-01-02T05:41:31.909Z [INFO] 127.0.0.1 POST /GETCART/BUY User ordered items before adding current items : [{"item_name":"iphone14","quantity":3,"unit price":55000,"total price":165000,"total_price_in_rupees":165000},{"item_name":"jean C","quantity":3,"unit price":1300,"total price":3900,"total_price_in_rupees":3900},{"item_name":"tshirt A","quantity":2,"unit price":450,"total price":900,"total_price_in_rupees":900}]
+2023-01-02T05:41:31.909Z [INFO] 127.0.0.1 POST /GETCART/BUY User ordered items after adding current items : [{"item_name":"iphone14","quantity":3,"unit price":55000,"total price":165000,"total_price_in_rupees":165000},{"item_name":"jean C","quantity":3,"unit price":1300,"total price":3900,"total_price_in_rupees":3900},{"item_name":"tshirt A","quantity":2,"unit price":450,"total price":900,"total_price_in_rupees":900},{"jean C":{"item_name":"jean C","quantity":1,"unit price":1300,"total price":1300},"iphone14":{"item_name":"iphone14","quantity":4,"unit price":55000,"total price":220000},"samsung galaxy Z1 ultra":{"item_name":"samsung galaxy Z1 ultra","quantity":2,"unit price":66000,"total price":132000},"total_price_in_rupees":353300}]
+2023-01-02T05:41:31.909Z [INFO] 127.0.0.1 POST /GETCART/BUY Items has been successfully placed
+2023-01-02T05:41:49.681Z [INFO] 127.0.0.1 GET /GETORDEREDITEMS Inside /getordereditems request
+2023-01-02T05:41:49.682Z [INFO] 127.0.0.1 GET /GETORDEREDITEMS Successfully responded with the ordered details to the user [{"item_name":"iphone14","quantity":3,"unit price":55000,"total price":165000,"total_price_in_rupees":165000},{"item_name":"jean C","quantity":3,"unit price":1300,"total price":3900,"total_price_in_rupees":3900},{"item_name":"tshirt A","quantity":2,"unit price":450,"total price":900,"total_price_in_rupees":900},{"jean C":{"item_name":"jean C","quantity":1,"unit price":1300,"total price":1300},"iphone14":{"item_name":"iphone14","quantity":4,"unit price":55000,"total price":220000},"samsung galaxy Z1 ultra":{"item_name":"samsung galaxy Z1 ultra","quantity":2,"unit price":66000,"total price":132000},"total_price_in_rupees":353300}]
+2023-01-02T05:52:07.504Z [INFO] 127.0.0.1 POST /ADDPRODUCT Inside the request
+2023-01-02T05:52:07.518Z [WARN] 127.0.0.1 POST /ADDPRODUCT Decoded value isn't an object
+2023-01-02T05:52:22.004Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T05:52:22.004Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T05:52:22.005Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T05:52:32.322Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T05:52:32.322Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T05:53:11.313Z [INFO] 127.0.0.1 POST /ADDPRODUCT Inside the request
+2023-01-02T05:53:11.316Z [INFO] 127.0.0.1 POST /ADDPRODUCT Item has been successfully added
+2023-01-02T05:53:27.296Z [INFO] 127.0.0.1 POST /ADDPRODUCT Inside the request
+2023-01-02T05:53:27.298Z [WARN] 127.0.0.1 POST /ADDPRODUCT Invalid keys in payload Price in Rs param is empty.kindly provide proper value,Discounted price in Rs param is empty.kindly provide proper value
+2023-01-02T05:54:08.686Z [INFO] 127.0.0.1 POST /ADDPRODUCT Inside the request
+2023-01-02T05:54:08.691Z [WARN] 127.0.0.1 POST /ADDPRODUCT Sub category param is empty
+2023-01-02T05:54:39.081Z [INFO] 127.0.0.1 POST /ADDPRODUCT Inside the request
+2023-01-02T05:54:39.083Z [INFO] 127.0.0.1 POST /ADDPRODUCT Item has been successfully added
+2023-01-02T05:57:02.076Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T05:57:02.077Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T05:57:02.077Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T05:57:16.625Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T05:57:16.625Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T05:58:29.936Z [INFO] 127.0.0.1 POST /ADDPRODUCT Inside the request
+2023-01-02T05:58:29.943Z [INFO] 127.0.0.1 POST /ADDPRODUCT Payload received in the request {"item_name":"iphone10","category":"electronics","subcategory":"phones","name to show in ui":"iPhone 18","price_in_Rs":100,"discounted_price":80}
+2023-01-02T05:58:29.943Z [INFO] 127.0.0.1 POST /ADDPRODUCT Item has been successfully added
+2023-01-02T06:06:50.576Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T06:06:50.577Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T06:06:50.578Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T06:07:01.816Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T06:07:01.816Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T06:07:15.315Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T06:07:15.326Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : undefined
+2023-01-02T06:07:15.327Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : samsung galaxy Z1 ultra
+2023-01-02T06:07:15.327Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : samsung galaxy Z1 ultra
+2023-01-02T06:07:22.300Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T06:07:22.305Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : samsung galaxy Z1 ultra
+2023-01-02T06:07:22.306Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : samsung galaxy Z1 ultra,iphone14
+2023-01-02T06:07:22.306Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : iphone14
+2023-01-02T06:08:10.369Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T06:08:10.369Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T06:08:10.369Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T06:08:19.441Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T06:08:19.442Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T06:08:39.009Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T06:08:39.020Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : undefined
+2023-01-02T06:08:39.020Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : iphone14
+2023-01-02T06:08:39.021Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : iphone14
+2023-01-02T06:08:43.514Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T06:08:43.523Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : iphone14
+2023-01-02T06:08:43.524Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : iphone14,jean B
+2023-01-02T06:08:43.524Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : jean B
+2023-01-02T06:08:50.440Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T06:08:50.442Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : iphone14,jean B
+2023-01-02T06:08:50.442Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : iphone14,jean B,tshirt C
+2023-01-02T06:08:50.442Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : tshirt C
+2023-01-02T06:09:01.580Z [INFO] 127.0.0.1 GET /GETCART Inside /getcart request
+2023-01-02T06:09:01.582Z [INFO] 127.0.0.1 GET /GETCART Cart details of the user : ["iphone14","jean B","tshirt C"]
+2023-01-02T06:19:36.130Z [INFO] 127.0.0.1 POST /ADDPRODUCT Inside the request
+2023-01-02T06:19:36.137Z [WARN] 127.0.0.1 POST /ADDPRODUCT Decoded value isn't an object
+2023-01-02T06:19:43.124Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T06:19:43.124Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T06:19:43.125Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T06:19:49.335Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T06:19:49.336Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T06:21:32.519Z [INFO] 127.0.0.1 POST /ADDPRODUCT Inside the request
+2023-01-02T06:21:32.522Z [WARN] 127.0.0.1 POST /ADDPRODUCT Decoded value isn't an object
+2023-01-02T06:21:40.520Z [INFO] 127.0.0.1 POST /ADDPRODUCT Inside the request
+2023-01-02T06:21:40.521Z [WARN] 127.0.0.1 POST /ADDPRODUCT Decoded value isn't an object
+2023-01-02T06:21:48.730Z [INFO] 127.0.0.1 POST /ADDPRODUCT Inside the request
+2023-01-02T06:21:48.734Z [INFO] 127.0.0.1 POST /ADDPRODUCT updated keys : price_in_Rs,discounted_price invalid keys : username,item_name,available_sizees
+2023-01-02T06:24:23.545Z [INFO] 127.0.0.1 DELETE /ADDPRODUCT Inside the request
+2023-01-02T06:24:23.546Z [WARN] 127.0.0.1 DELETE /ADDPRODUCT Decoded value isn't an object
+2023-01-02T06:24:39.150Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T06:24:39.151Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun44
+2023-01-02T06:24:53.166Z [INFO] 127.0.0.1 DELETE /ADDPRODUCT Inside the request
+2023-01-02T06:24:53.171Z [ERROR] 127.0.0.1 DELETE /ADDPRODUCT Category param is empty kindly 
+2023-01-02T06:25:24.437Z [INFO] 127.0.0.1 DELETE /ADDPRODUCT Inside the request
+2023-01-02T06:25:24.439Z [ERROR] 127.0.0.1 DELETE /ADDPRODUCT Sub category param is empty kindly
+2023-01-02T06:25:36.853Z [INFO] 127.0.0.1 DELETE /ADDPRODUCT Inside the request
+2023-01-02T06:25:36.856Z [ERROR] 127.0.0.1 DELETE /ADDPRODUCT Product has been removed successfully 

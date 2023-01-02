@@ -1,7 +1,48 @@
-const Hapi = require('hapi'),user = require('./User'),loggingFunction = require('./helperfunctions.js'),jwt = require('jsonwebtoken')
+const Hapi = require('hapi'),user = require('./User'),loggingFunction = require('./helperfunctions.js'),jwt = require('jsonwebtoken'),winston = require('winston');
+const Joi = require('joi');
+// const loggerFile = require('./logger.js')
+const logger = require('./logger.js');
+
+// const {createLogger,format,transports} = require('winston');
+// const {timestamp,combine,printf,errors} = format;
+// console.log(process.env.NODE_ENV , typeof process.env.NODE_ENV);
+// if(process.env.NODE_ENV == 'production'){
+//     logger = createLogger({
+//         level : 'info',
+//         format : format.json(),
+//         transports : [
+//             new transports.File({filename : 'productionerror.log'})
+//         ]
+//     })
+// }
+// let  logger = null;
+
+// if(process.env.NODE_ENV === 'development'){
+//     logger = loggerFile.devLogger();
+// }
+// else{
+//     logger = loggerFile.logger.productionLogger();
+// }
 // Jwt = require('@hapi/jwt')
 // const JWTAuth = require('hapi-auth-jwt2');
-console.log('arun');
+console.log('Arun Kumarrr');
+
+function addRemoteIPToFileLogger(message , remote_ip,path,method){
+    let obj_2 = {};
+    obj_2['message'] = message;
+    console.log(remote_ip);
+    obj_2['Remote IP Address'] = remote_ip; 
+    obj_2['Path'] = String(path).toUpperCase();
+    obj_2['Method'] = String(method).toUpperCase();
+    return obj_2;
+}
+
+// logger.info(addRemoteIPToFileLogger('Info','192.192.192.75','/signup','GET'));
+// logger.warn(addRemoteIPToFileLogger('Warn','192.192.192.75','/signin','POST'));
+// logger.error(addRemoteIPToFileLogger('Error','192.192.192.75','/form','PUT'));
+// logger.debug(addRemoteIPToFileLogger('Debug','192.192.192.75','/survey','DELETE'));
+// logger.error(new Error('Testing the custom error thrown'));
+
 
 const categoryWithSubCategories = {};
 categoryWithSubCategories['electronics'] = {};
@@ -406,22 +447,28 @@ server.route(
         method : 'POST',
         path : '/addtocart',
         handler : function(request,h){
+            let path = '/addtocart',method = request.method;
+            logger.info(addRemoteIPToFileLogger(`Inside POST addtocart request`,request.location.ip,path,method));
             let authHeader = request.headers['authorization'];
             if(authHeader == undefined){
+                logger.warn((addRemoteIPToFileLogger(`Header value is missing in the request `,request.location.ip,path,method)));
                 return h.response('Header missing in the request').code(401);
             }
             let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
             if(typeof resp != 'object'){
+                logger.warn((addRemoteIPToFileLogger('Decoded value of the token isn\'t an object ',request.location.ip,path,method)));
                 return h.response(resp).code(401);
             }
             // console.log('Response received : ',resp);
             // console.log('Username after decoding from token : ',resp['uname']);
             let uname = resp['uname'];
-            let itemToAddToCart = JSON.parse(request.payload),item_name = itemToAddToCart['item name'];
+            let itemToAddToCart = request.payload,item_name = itemToAddToCart['itemname'];
             if(item_name == undefined || item_name == ''){
+                logger.info((addRemoteIPToFileLogger(`Item name being passed is invalid value : ${item_name}`,request.location.ip,path,method)));
                 return h.response('Kindly provide valid item name to add to Cart').code(400);
             }
             else if(products[item_name] == undefined){
+                logger.info((addRemoteIPToFileLogger(`There isn\'t a key in products with the mentioned item name : ${item_name}`,request.location.ip,path,method)));
                 return h.response('Mentioned item name isn\'t valid.Kindly provide valid item name').code(400);
             }
             else{
@@ -429,33 +476,52 @@ server.route(
                     return h.response('Kindly provide username in the query params to add the item to his cart').code(400);
                 }
                 else if(!(uname in active_user_list)){
+                    logger.info((addRemoteIPToFileLogger(`Mentioned username isn\'t valid Kindly provide valid username : ${uname}`,request.location.ip,path,method)));
                     return h.response('Mentioned username isn\'t valid Kindly provide valid username').code(400);
                 }
                 else{
                     let userCart = userCartDetails[uname];
+                    logger.info((addRemoteIPToFileLogger(`User cart details before adding the item : ${userCart}`,request.location.ip,path,method)));
                     if(userCart == undefined){
                         userCart = [];
                     }
                     userCart.push(item_name);
                     userCartDetails[uname] = userCart;
+                    logger.info((addRemoteIPToFileLogger(`User cart details after adding the item to cart : ${userCart}`,request.location.ip,path,method)));
                     let msg = `Item : ${item_name} successfully added to cart`;
+                    logger.info((addRemoteIPToFileLogger(`Successfully added the item to cart NEW ITEM NAME : ${item_name}`,request.location.ip,path,method)));
                     logs[uname] = loggingFunction.loggingTheActionToGlobalVariable(msg,request.location,logs[uname]);
                     return h.response(msg).code(200);
                 }
             }
 
+        },
+        config: {
+            validate : {
+                    payload : Joi.object(
+                        {
+                            itemname : Joi.string().min(4).max(25).required()
+                        }
+                    ),
+                    failAction : function (request,h , source, error) {
+                        return h.response({ code: 400, message: source.details[0].message}).takeover().code(400);
+                    }
+            }
         }
     },
     {
         method : 'GET',
         path : '/getcart',
         handler : function(request,h){
-            let authHeader = request.headers['authorization'];
+            let authHeader = request.headers['authorization'],path = '/getcart',method = request.method;
+            logger.info(addRemoteIPToFileLogger(`Inside /getcart request`,request.location.ip,path,method));
             if(authHeader == undefined){
+                logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
             let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
             if(typeof resp != 'object'){
+                logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
             // console.log('Response received : ',resp);
@@ -465,13 +531,14 @@ server.route(
                 return h.response('Kindly provide username to get his cart details').code(400);
             }
             else if(!(uname in active_user_list)){
+                logger.warn(addRemoteIPToFileLogger(`Mentioned user : ${uname} isn\'t a valid user Kindly provide valid value for username param`,request.location.ip,path,method));
                 return h.response('Mentioned user isn\'t a valid user Kindly provide valid value for username param ').code(400);
             }
             else{
                 let cartDetils = userCartDetails[uname],obj={};
                 obj.userCart = cartDetils;
+                logger.info(addRemoteIPToFileLogger(`Cart details of the user : ${JSON.stringify(cartDetils)}`,request.location.ip,path,method));
                 logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('user accessing cart',request.location,logs[uname]);
-                console.log('User log details : ',logs[uname]);
                 return h.response(obj).code(200);
             }
         }
@@ -480,12 +547,15 @@ server.route(
         method : 'POST',
         path : '/addproduct',
         handler : function(request,h){
-            let authHeader = request.headers['authorization'];
+            let authHeader = request.headers['authorization'],path = '/addproduct',method = request.method;
+            logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
             if(authHeader == undefined){
+                logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
             let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
             if(typeof resp != 'object'){
+                logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
             // console.log('Response received : ',resp);
@@ -493,16 +563,21 @@ server.route(
             let uname = resp['uname'];
             if(admin_user_list.includes(uname)){
                 let payload = JSON.parse(request.payload),item_name = payload['item_name'],category = payload['category'],subcategory = payload['subcategory'];
+                logger.info(addRemoteIPToFileLogger(`Payload received in the request ${JSON.stringify(payload)}`,request.location.ip,path,method));
                 if(!(admin_user_list.includes(uname))){
+                    logger.warn(addRemoteIPToFileLogger(`Unable to add the product since user is not a Admin ${uname}`,request.location.ip,path,method));
                     return h.response('Unable to add the product since user is not a Admin').code(400);
                 }
                 else if(category == undefined || category == ''){
+                    logger.warn(addRemoteIPToFileLogger(`Category param is empty`,request.location.ip,path,method));
                     return h.response('Category param is empty kindly provie proper value to add the product').code(400);
                 }
                 else if(subcategory == undefined || subcategory == ''){
+                    logger.warn(addRemoteIPToFileLogger(`Sub category param is empty`,request.location.ip,path,method));
                     return h.response('Sub category param is empty kindly provie proper value to add the product').code(400);
                 }
                 else if(item_name == undefined || item_name == ''){
+                    logger.warn(addRemoteIPToFileLogger('Item name is empty kindly provide valid item name',request.location.ip,path,method));
                     return h.response('Item name is empty kindly provide valid item name').code(400);
                 }
                 else{
@@ -520,6 +595,7 @@ server.route(
                         let errorObj = {};
                         errorObj['message'] = 'Certain essential keys are missing in the payload';
                         errorObj['keys missing'] = invalidPayload;
+                        logger.warn(addRemoteIPToFileLogger(`Invalid keys in payload ${invalidPayload}`,request.location.ip,path,method));
                         return h.response(errorObj).code(400);
                     }
                     else{
@@ -532,6 +608,7 @@ server.route(
                         }
                         categoryWithSubCategories[category][subcategory].push(item_name);
                         products[item_name] = newproductObj;
+                        logger.info(addRemoteIPToFileLogger('Item has been successfully added',request.location.ip,path,method));
                         return h.response('Item has been successfully added').code(200);
                     }
                 }
@@ -545,12 +622,15 @@ server.route(
         method : 'DELETE',
         path : '/products/delete',
         handler : function(request,h){
-            let authHeader = request.headers['authorization'];
+            let authHeader = request.headers['authorization'],path = '/addproduct',method = request.method;
+            logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
             if(authHeader == undefined){
+                logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
             let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
             if(typeof resp != 'object'){
+                logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
             // console.log('Response received : ',resp);
@@ -562,33 +642,41 @@ server.route(
                 return h.response('username param in payload is mandatory Kindly provide it').code(400)
             }
             else if(!(admin_user_list.includes(uname))){
+                logger.warn(addRemoteIPToFileLogger(`Unable to add the product since user is not a Admin`,request.location.ip,path,method));
                 return h.response('Unable to add the product since user is not a Admin').code(401);
             }
             else if(category == undefined || category == ''){
+                logger.error(addRemoteIPToFileLogger(`Category param is empty kindly `,request.location.ip,path,method));
                 return h.response('Category param is empty kindly provie proper value to add the product').code(400);
             }
             else if(subcategory == undefined || subcategory == ''){
+                logger.error(addRemoteIPToFileLogger(`Sub category param is empty kindly`,request.location.ip,path,method));
                 return h.response('Sub category param is empty kindly provie proper value to add the product').code(400);
             }
             else if(item_name == undefined || item_name == ''){
+                logger.error(addRemoteIPToFileLogger(`Item name is empty `,request.location.ip,path,method));
                 return h.response('Item name is empty kindly provide valid item name').code(400);
             }
             else{
                 if(categoryWithSubCategories[category] == undefined){
+                    logger.error(addRemoteIPToFileLogger(`Improper category name provided ${category} `,request.location.ip,path,method));
                     return h.response('Improper category name provided').code(400);
                 }
                 else if(categoryWithSubCategories[category][subcategory] == undefined){
+                    logger.error(addRemoteIPToFileLogger(`Improper subcategory name provided ${subcategory} `,request.location.ip,path,method));
                     return h.response('Improper sub category name provided').code(400);
                 }
                 else{
                     let productArray = categoryWithSubCategories[category][subcategory];
                     let indexOfProductToBeRemoved = productArray.indexOf(item_name);
                     if(indexOfProductToBeRemoved == -1){
+                        logger.error(addRemoteIPToFileLogger(`Invalid item name being passed in the request ${item_name} `,request.location.ip,path,method));
                         return h.response('Invalid item name being passed in the request').code(400);
                     }
                     let finalArray = productArray.splice(0,indexOfProductToBeRemoved).concat(productArray.splice(1));
                     categoryWithSubCategories[category][subcategory] = finalArray;
                     delete products[item_name];
+                    logger.error(addRemoteIPToFileLogger(`Product has been removed successfully `,request.location.ip,path,method));
                     return h.response('Product has been removed successfully').code(200);
                 }
             }
@@ -599,12 +687,15 @@ server.route(
         method : ['PUT','POST'],
         path : '/products/edit',
         handler : function(request,h){
-            let authHeader = request.headers['authorization'];
+            let authHeader = request.headers['authorization'],path = '/addproduct',method = request.method;
+            logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
             if(authHeader == undefined){
+                logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
             let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
             if(typeof resp != 'object'){
+                logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
             // console.log('Response received : ',resp);
@@ -616,9 +707,11 @@ server.route(
                 return h.response('kindly provide valid username in request payload').code(400);
             }
             else if(!(admin_user_list.includes(uname))){
+                logger.warn(addRemoteIPToFileLogger(`Unable to add the product since user is not a Admin`,request.location.ip,path,method));
                 return h.response('Unable to perform action since user isn\'t an Admin').code(400);
             }
             else if(!(item_name in products)){
+                logger.error(addRemoteIPToFileLogger(`Invalid item name being passed in the request ${item_name} `,request.location.ip,path,method));
                 return h.response('Mentioned item name is improper').code(400);
             }
             else{
@@ -636,6 +729,7 @@ server.route(
                 let resultobj = {};
                 resultobj['updated_keys'] = updated_keys;
                 resultobj['invalid_keys'] = invalid_keys;
+                logger.info(addRemoteIPToFileLogger(`updated keys : ${updated_keys} invalid keys : ${invalid_keys}`,request.location.ip,path,method));
                 return h.response(resultobj).code(200);
             }
         }
@@ -645,18 +739,21 @@ server.route(
         method : 'POST',
         path : '/getcart/buy',
         handler : function(request,h){
-            let authHeader = request.headers['authorization'];
+            let authHeader = request.headers['authorization'],path = '/getcart/buy',method = request.method;
+            logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
             if(authHeader == undefined){
+                logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
             let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
             if(typeof resp != 'object'){
+                logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
             // console.log('Response received : ',resp);
             // console.log('Username after decoding from token : ',resp['uname']);
             let uname = resp['uname'];
-            let payload = JSON.parse(request.payload),itemsAndQuantities = payload['items'];
+            let payload = request.payload,itemsAndQuantities = payload['items'];
             let invoice = {};
             if(uname == undefined || uname == '' || !(uname in active_user_list)){
                 return h.response('kindly provide valid username in request payload').code(400);
@@ -664,6 +761,7 @@ server.route(
             let total_price_of_ordered_items =  0,unplaced_items = [];
             for(const [key,value] of Object.entries(itemsAndQuantities)){
                 if(!(key in products)){
+                    logger.warn(addRemoteIPToFileLogger(`Item name being passed is invalid :::: ${key}`,request.location.ip,path,method));
                     return h.response(`Invalid item name : ${key} being passed`).code(400);
                 }
                 if(products[key]['Out_of_stock'] == true){
@@ -672,6 +770,7 @@ server.route(
                 let quantity = Number(value);
                 console.log('QUANTITY : ',quantity);
                 if(isNaN(quantity)){
+                    logger.warn(addRemoteIPToFileLogger(`Invalid quantity : ${value} being provided for item : ${key}`,request.location.ip,path,method));
                     return h.response(`Invalid quantity : ${value} being provided for item : ${key}`).code(400);
                 }
                 let obj = {};
@@ -684,16 +783,22 @@ server.route(
             }
             invoice['total_price_in_rupees'] = total_price_of_ordered_items;
             let userAlreadyOrderedItems = userOrderedItems[uname];
+            // if(JSON.stringify() userAlreadyOrderedItems == undefined){
+            //     logVal = '';
+            // }
+            logger.info(addRemoteIPToFileLogger(`User ordered items before adding current items : ${JSON.stringify(userAlreadyOrderedItems)}`,request.location.ip,path,method));
             if(userAlreadyOrderedItems == undefined){
                 userAlreadyOrderedItems = [];
             }
             userAlreadyOrderedItems.push(invoice);
             userOrderedItems[uname] = userAlreadyOrderedItems;
+            logger.info(addRemoteIPToFileLogger(`User ordered items after adding current items : ${JSON.stringify(userAlreadyOrderedItems)}`,request.location.ip,path,method));
+            logger.info(addRemoteIPToFileLogger(`Items has been successfully placed`,request.location.ip,path,method));
+            // let resObj["unplaced items"] = {};
             console.log(userOrderedItems);
             logs[uname] = loggingFunction.loggingTheActionToGlobalVariable(`User placed an order`,request.location,logs[uname]);
             let resObj = {};
             resObj["message"] = 'Items has been placed successfully';
-            // let resObj["unplaced items"] = {};
             if(unplaced_items.length > 0){
                 // let resObj['unplaced_items'] = new Object();
                 resObj['unplaced_items'] = unplaced_items;
@@ -701,35 +806,61 @@ server.route(
                 // resObj.unplaced_items["reason"] = 'Above items are Out of Stock So unable to place order for them';
             }
             return h.response(resObj).code(200);
+        },
+        config : {
+            validate : {
+                payload : Joi.object(
+                    {
+                        items : Joi.object().pattern(Joi.string().min(4).max(25).required(), Joi.number().min(1).max(4).required())
+                        // Joi.string().min(4).max(25).required()
+                    }
+                ),
+                failAction : function (request,h , source, error) {
+
+                    console.log('VAL OF SOURCE:',source);
+                    console.log('------------------------------');
+                    let obj = [];
+                    source.details.forEach(errorMsg => obj.push(errorMsg.message));
+                    return h.response({ code: 400, message: obj}).takeover().code(400);
+                    // return h.response({ code: 400, message: source.details[0].message}).takeover().code(400);
+                    
+                }
+            }
         }
     },
     {
         method : 'POST',
         path : '/buy',
         handler : function(request,h){
-            let authHeader = request.headers['authorization'];
+            let authHeader = request.headers['authorization'],path = '/buy',method = request.method;
+            logger.info(addRemoteIPToFileLogger(`Inside /buy request`,request.location.ip,path,method));
             if(authHeader == undefined){
+                logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
             let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
             if(typeof resp != 'object'){
+                logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
             // console.log('Response received : ',resp);
             // console.log('Username after decoding from token : ',resp['uname']);
             let uname = resp['uname'];
-            let payload = JSON.parse(request.payload),item_name = payload['item name'],qty = payload['quantity'];
+            let payload = request.payload,item_name = payload['itemname'],qty = payload['quantity'];
             let invoice = {};
             if(uname == undefined || uname == '' || !(uname in active_user_list)){
                 return h.response('kindly provide valid username in request payload').code(400);
             }
             if(!(item_name in products)){
+                logger.warn(addRemoteIPToFileLogger(`Item name being passed is invalid :::: ${item_name}`,request.location.ip,path,method));
                 return h.response('Item name is invalid.Kindly mention it properly').code(400);
             }
             if(products[item_name]['Out_of_stock'] == true){
+                logger.warn(addRemoteIPToFileLogger(`Item name being passed is currently Out of Stock :::: ${item_name}`,request.location.ip,path,method));
                 return h.response(`Item is Out of Stock now So unable to place order for them`).code(200);
             }
             let previousOrderedItems = userOrderedItems[uname];
+            logger.info(addRemoteIPToFileLogger(`User ordered items before adding current items : ${JSON.stringify(previousOrderedItems)}`,request.location.ip,path,method));
             if(previousOrderedItems == undefined){
                 previousOrderedItems = [];
             }
@@ -740,8 +871,27 @@ server.route(
             invoice['total_price_in_rupees'] = invoice['total price'];
             previousOrderedItems.push(invoice);
             userOrderedItems[uname] = previousOrderedItems;
-            console.log(userOrderedItems);
+            logger.info(addRemoteIPToFileLogger(`User ordered items before adding current items : ${JSON.stringify(previousOrderedItems)}`,request.location.ip,path,method));
+            logger.info(addRemoteIPToFileLogger(`Item :  ${item_name} has been placed successfully`,request.location.ip,path,method));
             return h.response(`${item_name} has been placed successfully`).code(200);
+        },
+        config : {
+            validate : {
+                payload : Joi.object(
+                    {
+                        itemname : Joi.string().min(4).max(25).required(),
+                        quantity : Joi.number().min(1).max(4).required()
+                    }
+                ),
+                failAction : function (request,h , source, error) {
+
+                    let obj = [];
+                    source.details.forEach(errorMsg => obj.push(errorMsg.message));
+                    return h.response({ code: 400, message: obj}).takeover().code(400);
+                    // return h.response({ code: 400, message: source.details[0].message}).takeover().code(400);
+                    
+                }
+            }
         }
     },
     {
@@ -749,12 +899,15 @@ server.route(
         path : '/getordereditems',
         handler : function(request,h){
 
-            let authHeader = request.headers['authorization'];
+            let authHeader = request.headers['authorization'],path = '/getordereditems',method = request.method;
+            logger.info(addRemoteIPToFileLogger(`Inside /getordereditems request`,request.location.ip,path,method));
             if(authHeader == undefined){
+                logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
             let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
             if(typeof resp != 'object'){
+                logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
             // console.log('Response received : ',resp);
@@ -763,6 +916,7 @@ server.route(
             if(userOrderedItems[uname] == undefined){
                 userOrderedItems[uname] = [];
             }
+            logger.info(addRemoteIPToFileLogger(`Successfully responded with the ordered details to the user ${JSON.stringify(userOrderedItems[uname])}`,request.location.ip,path,method));
             return h.response(userOrderedItems[uname]).code(200);
         }
     },
@@ -817,14 +971,14 @@ server.route(
         method : 'GET',
         path : '/user/signin',
         handler : function(request,h){
-            let query_params = request.query,uname = query_params['username'],pwd = query_params['password'];
+            let query_params = request.query,uname = query_params['username'],pwd = query_params['password'],path = '/user/signin',method = request.method;
             let msg;
-            console.log(userOrderedItems);
+            // logger.info(addRemoteIPToFileLogger(`Successfully created account with user name as : ${uname}`,request.location.ip,path,method));
+            logger.info(addRemoteIPToFileLogger(`Inside GET sign in request : username : ${uname} password : ${pwd}`,request.location.ip,path,method));
             if((uname == undefined || uname == "" ) || (pwd == undefined || pwd == "" ) ){
                     msg = 'Username and password are mandatory field.Kindly provide them';
                     if(uname != undefined && uname != ""){
                         logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('User provided empty password for signing into his account',request.location,logs[uname]);
-                        console.log('Inside GET sign in request',logs[uname]);
                     }
                     return h.response(msg).code(400);
             }
@@ -832,6 +986,7 @@ server.route(
             if(uname in active_user_list){
                 let userdetails = active_user_list[uname];
                 if(userdetails.getPassword() == pwd){
+                    logger.info(addRemoteIPToFileLogger(`Successfully logged into the account : uname : ${uname}`,request.location.ip,path,method));
                     let resp = {};
                     let token = jwt.sign({ 
                         user : uname,
@@ -840,22 +995,40 @@ server.route(
                     resp.msg = 'Successfully logged into the account';
                     resp.token = token;
                     logs[uname] = loggingFunction.loggingTheActionToGlobalVariable(msg,request.location,logs[uname]);
-                    console.log('Inside GET sign in request',logs[uname]);
                     return h.response(resp).code(201);
                 }
                 else{
                     msg = 'Entered password is wrong';
                     logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('User provided wrong password for signing into his account',request.location,logs[uname]);
-                    console.log('Inside GET sign in request',logs[uname]);
+                    logger.error(addRemoteIPToFileLogger(`Entered password is wrong for uname :  ${uname}`,request.location.ip,path,method));
                     return h.response(msg).code(400);
                 }
             }
             else{
                     msg = 'Mentioned username is improper';
-                    console.log('Inside GET sign in request',logs[uname]);
+                    logger.error(addRemoteIPToFileLogger(`User provided invalid username in the request ${uname}`,request.location.ip,path,method));
                     return h.response(msg).code(400);
             }
     
+        },
+        config : {
+            validate : {
+                query : Joi.object({
+                    username : Joi.string().min(4).max(10).required(),
+                    password : Joi.string().min(4).max(10).required()
+                }
+                ),
+                failAction : function (request,h , source, error) {
+
+                    // console.log('VAL OF SOURCE:',source);
+                    // console.log('------------------------------');
+                    let obj = [];
+                    source.details.forEach(errorMsg => obj.push(errorMsg.message));
+                    return h.response({ code: 400, message: obj}).takeover().code(400);
+                    // return h.response({ code: 400, message: source.details[0].message}).takeover().code(400);
+                    
+                }
+            }
         }
     },
     {
@@ -959,17 +1132,34 @@ server.route(
             //     obj[key] = value.getPassword();
             // }
             // return h.response(obj).code(200);
+        },
+        config : {
+            validate : {
+                query : Joi.object({
+                    username : Joi.string().min(4).max(10).required()
+                }
+                ),
+                failAction : function (request,h , source, error) {
+                    return h.response({ code: 400, message: source.details[0].message}).takeover().code(400);
+                }
+            }
         }
     },
     {
         method : ['POST','PUT'],
         path : '/user/signup',
         handler : function(request,h){
-    
+            console.log('Path details : ',this.path);
             try{
-                let query_params = JSON.parse(request.payload);
-                // console.log(typeof query_params);
+                let query_params = request.payload,path = '/user/signup', method = request.method;
                 let uname = query_params['username'],pwd = query_params['password'],email = query_params['email'];
+                let headers = request.headers; 
+                logger.debug(addRemoteIPToFileLogger(typeof headers,request.location,path,method));
+                logger.debug(addRemoteIPToFileLogger(JSON.stringify(headers),request.location,path,method));
+                // console.log(typeof query_params);
+                console.log('IP Address :::: ',request.location.ip);
+                logger.info(addRemoteIPToFileLogger('Inside POST sign up request with ',request.location.ip,path,method));
+                logger.info(addRemoteIPToFileLogger(`Received values from request user name : ${uname} password : ${pwd} email : ${email}`,request.location.ip,path,method));
                 if((uname == undefined || uname == "" ) || (pwd == undefined || pwd == "" ) || (email == undefined || email == "" )){
                     return h.response('Username, Password and Email id is a mandatory field kindly provide them').code(400);
                 }
@@ -994,8 +1184,8 @@ server.route(
                 registered_email_ids.push(query_params['email']);
                 // query_params.hostname = 'localhost'
                 let ip_address = request.location;
-                console.log('User ip address : ',ip_address);
-                logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('Successfully created account for the user',request.location,logs[uname]);
+                logger.debug(addRemoteIPToFileLogger(`User ip address : ${ip_address}`,request.location.ip,path,method));
+                logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('Successfully created account for the user',request.location.ip,logs[uname]);
 
                 // let token = Jwt.token.generate(
                 //     {
@@ -1019,17 +1209,17 @@ server.route(
                 //     email : email
                 // }, 'SECRET_KEY_ARUN');
                 // console.log('Newly created token value is ',token);
-
-                console.log('Inside POST sign up request',logs[uname]);
                 // let resp =  {};
                 // // resp["token"] = token;
                 // resp["msg = 'Successfully created account';
+                logger.info(addRemoteIPToFileLogger(`Successfully created account with user name as : ${uname}`,request.location.ip,path,method));
                 return h.response('Successfully created account').code(200);
             }
             catch(err){
                 let errorObj = {};
                 errorObj.error_message = err.message;
                 errorObj.message = 'Unable to create account at this moment';
+                logger.error(addRemoteIPToFileLogger(`Unable to create account at this moment with user name as : ${request.payload.$['username']}`,request.location,'/user/signup',request.method));
                 return h.response(errorObj).code(500);
             }
         },
@@ -1040,7 +1230,26 @@ server.route(
                      Username is considered unique
                      If the username provided in the payload matches any of the pre-exisiting users in backend then error will be thrown
                      Email ID is also considered unique as well
-                     ONLY WHEN USERNAME and EMAIL address provided in payload is unique then the request will be successful`
+                     ONLY WHEN USERNAME and EMAIL address provided in payload is unique then the request will be successful`,
+            validate : {
+                        payload : Joi.object({
+                                username : Joi.string().min(4).max(10).required(),
+                                password : Joi.string().min(4).max(10).required(),
+                                email: Joi.string().email().required(),
+                                first_name : Joi.string().min(5).max(10).required(),
+                                last_name : Joi.string().min(1).max(10),
+                                phone : Joi.number().integer().min(7 * (10 ** 9)).max((10 ** 10) - 1)
+                            }
+                            ),
+                            failAction : function (request,h , source, error) {
+            
+                                console.log('VAL OF SOURCE:',source);
+                                console.log('------------------------------');
+                                let obj = [];
+                                source.details.forEach(errorMsg => obj.push(errorMsg.message));
+                                return h.response({ code: 400, message: obj}).takeover().code(400);
+                            }
+                        }
         }
     }]
 )

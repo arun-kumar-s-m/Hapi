@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "devStart": "nodemon server.js",
+    "start": "NODE_ENV=production nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,11 +22,14 @@
   },
   "homepage": "https://github.com/arun-kumar-s-m/Hapi-Framework#readme",
   "dependencies": {
+    "@hapi/joi": "^17.1.1",
     "@hapi/jwt": "^3.0.0",
     "hapi": "^18.1.0",
     "hapi-auth-jwt2": "^10.2.0",
     "hapi-geo-locate": "^4.1.1",
+    "joi": "^14.3.1",
     "jsonwebtoken": "^9.0.0",
-    "nodemon": "^2.0.20"
+    "nodemon": "^2.0.20",
+    "winston": "^3.8.2"
   }
 }
