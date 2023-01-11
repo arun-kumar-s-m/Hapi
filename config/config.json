@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "arunkumarsm",
+    "password": null,
+    "database": "Amart",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "arunkumarsm",
+    "password": null,
+    "database": "Amart",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "arunkumarsm",
+    "password": null,
+    "database": "Amart",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}

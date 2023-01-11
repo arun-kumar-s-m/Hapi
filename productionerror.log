@@ -421,3 +421,104 @@
 2023-01-02T06:25:24.439Z [ERROR] 127.0.0.1 DELETE /ADDPRODUCT Sub category param is empty kindly
 2023-01-02T06:25:36.853Z [INFO] 127.0.0.1 DELETE /ADDPRODUCT Inside the request
 2023-01-02T06:25:36.856Z [ERROR] 127.0.0.1 DELETE /ADDPRODUCT Product has been removed successfully 
+2023-01-02T11:08:34.557Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:08:34.557Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T11:08:34.558Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T11:24:21.598Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:28:48.459Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:28:48.459Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T11:28:48.460Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T11:30:19.066Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:31:31.818Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:31:31.819Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T11:31:31.819Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun44
+2023-01-02T11:31:31.822Z [INFO] 127.0.0.1 PUT /USER/SIGNUP 
+2023-01-02T11:31:53.250Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:31:53.250Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun44 password : 4444 email : arun444@yyyyy.com
+2023-01-02T11:31:53.254Z [INFO] 127.0.0.1 PUT /USER/SIGNUP 
+2023-01-02T11:32:07.498Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:32:07.498Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun444 password : 44444 email : arun4444@yyyyy.com
+2023-01-02T11:32:07.498Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun444
+2023-01-02T11:32:07.501Z [INFO] 127.0.0.1 PUT /USER/SIGNUP 
+2023-01-02T11:33:12.713Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:33:12.714Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun444 password : 44444 email : arun4444@yyyyy.com
+2023-01-02T11:33:12.714Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun444
+2023-01-02T11:33:12.720Z [INFO] 127.0.0.1 PUT /USER/SIGNUP 
+2023-01-02T11:33:12.720Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside server events on 
+2023-01-02T11:34:21.512Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:34:21.512Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun444 password : 44444 email : arun4444@yyyyy.com
+2023-01-02T11:34:21.513Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun444
+2023-01-02T11:34:21.518Z [INFO] 127.0.0.1 PUT /USER/SIGNUP [object Object]
+2023-01-02T11:34:21.518Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside server events on 
+2023-01-02T11:34:41.088Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:34:41.088Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun444 password : 44444 email : arun4444@yyyyy.com
+2023-01-02T11:34:41.088Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun444
+2023-01-02T11:34:41.092Z [INFO] 127.0.0.1 PUT /USER/SIGNUP {"query params":{},"payload":{"username":"arun444","password":"44444","first_name":"fdmar","email":"arun4444@yyyyy.com","last_name":"awe324r5t","phone":8072219131},"headers":{"content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"cb570185-2a27-4186-820c-1eaef95e1a4b","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"175"}}
+2023-01-02T11:34:41.092Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside server events on 
+2023-01-02T11:36:50.659Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun44 password : 4444
+2023-01-02T11:36:50.659Z [ERROR] 127.0.0.1 GET /USER/SIGNIN User provided invalid username in the request arun44
+2023-01-02T11:36:50.665Z [INFO] 127.0.0.1 GET /USER/SIGNIN {"query params":{"username":"arun44","password":"4444"},"payload":null,"headers":{"content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"ade415b1-32c0-4406-80c1-74c3e4ff551f","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"56"}}
+2023-01-02T11:36:50.665Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside server events on 
+2023-01-02T11:36:58.536Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun444 password : 44444
+2023-01-02T11:36:58.536Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun444
+2023-01-02T11:36:58.553Z [INFO] 127.0.0.1 GET /USER/SIGNIN {"query params":{"username":"arun444","password":"44444"},"payload":null,"headers":{"content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"c541ec3a-a926-4904-aa4a-b7f46575fffd","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"56"}}
+2023-01-02T11:36:58.553Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside server events on 
+2023-01-02T11:37:29.130Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T11:37:29.136Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : undefined
+2023-01-02T11:37:29.137Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : jean B
+2023-01-02T11:37:29.137Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : jean B
+2023-01-02T11:37:29.141Z [INFO] 127.0.0.1 POST /ADDTOCART {"query params":{},"payload":{"itemname":"jean B"},"headers":{"authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYXJ1bjQ0NCIsInB3ZCI6IjQ0NDQ0IiwiaWF0IjoxNjcyNjU5NDE4fQ.dI1qChcYxV-zBjAMQ7Icnf8fQnzQv-QR1_cfewGq93k","content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"658abbfc-cf81-42b3-84fa-53789a70af36","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"28"}}
+2023-01-02T11:37:29.141Z [INFO] 127.0.0.1 POST /ADDTOCART Inside server events on 
+2023-01-02T11:41:23.515Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:42:25.365Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:42:25.365Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun444 password : 44444 email : arun4444@yyyyy.com
+2023-01-02T11:42:25.366Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun444
+2023-01-02T11:42:25.374Z [INFO] 127.0.0.1 PUT /USER/SIGNUP {"query params":{},"payload":{"username":"arun444","password":"44444","first_name":"fdmar","email":"arun4444@yyyyy.com","last_name":"awe324r5t","phone":8072219131},"headers":{"content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"4084d521-752f-4276-a597-4c4efd4f492e","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"175"}}
+2023-01-02T11:42:25.374Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside server events on 
+2023-01-02T11:44:03.465Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside POST sign up request with 
+2023-01-02T11:44:03.466Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Received values from request user name : arun444 password : 44444 email : arun4444@yyyyy.com
+2023-01-02T11:44:03.466Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Successfully created account with user name as : arun444
+2023-01-02T11:44:03.470Z [INFO] 127.0.0.1 PUT /USER/SIGNUP {"query params":{},"payload":{"username":"arun444","password":"44444","first_name":"fdmar","email":"arun4444@yyyyy.com","last_name":"awe324r5t","phone":8072219131},"headers":{"content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"57e70b85-9048-4836-9941-29f7f73b4bf2","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"175"},"response":"Successfully created account","response status code":200}
+2023-01-02T11:44:03.471Z [INFO] 127.0.0.1 PUT /USER/SIGNUP Inside server events on 
+2023-01-02T11:44:36.812Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside GET sign in request : username : arun444 password : 44444
+2023-01-02T11:44:36.813Z [INFO] 127.0.0.1 GET /USER/SIGNIN Successfully logged into the account : uname : arun444
+2023-01-02T11:44:36.827Z [INFO] 127.0.0.1 GET /USER/SIGNIN {"query params":{"username":"arun444","password":"44444"},"payload":null,"headers":{"content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"d97ef82c-6aa6-411c-ad27-5ae87a6f9545","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"56"},"response":{"msg":"Successfully logged into the account","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYXJ1bjQ0NCIsInB3ZCI6IjQ0NDQ0IiwiaWF0IjoxNjcyNjU5ODc2fQ.q4GDFnP2KsdFDLJR6a8rnNscp44wYQCuNxaTpx8QUZ8"},"response status code":201}
+2023-01-02T11:44:36.827Z [INFO] 127.0.0.1 GET /USER/SIGNIN Inside server events on 
+2023-01-02T11:45:54.374Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T11:45:54.377Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : undefined
+2023-01-02T11:45:54.377Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : jean B
+2023-01-02T11:45:54.377Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : jean B
+2023-01-02T11:45:54.378Z [INFO] 127.0.0.1 POST /ADDTOCART {"query params":{},"payload":{"itemname":"jean B"},"headers":{"authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYXJ1bjQ0NCIsInB3ZCI6IjQ0NDQ0IiwiaWF0IjoxNjcyNjU5ODc2fQ.q4GDFnP2KsdFDLJR6a8rnNscp44wYQCuNxaTpx8QUZ8","content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"9db3788d-47cf-4cee-ada4-f4ff40a01e3e","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"28"},"response":"Item : jean B successfully added to cart","response status code":200}
+2023-01-02T11:45:54.378Z [INFO] 127.0.0.1 POST /ADDTOCART Inside server events on 
+2023-01-02T11:46:01.100Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T11:46:01.103Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : jean B
+2023-01-02T11:46:01.103Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : jean B,tshirt C
+2023-01-02T11:46:01.103Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : tshirt C
+2023-01-02T11:46:01.107Z [INFO] 127.0.0.1 POST /ADDTOCART {"query params":{},"payload":{"itemname":"tshirt C"},"headers":{"authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYXJ1bjQ0NCIsInB3ZCI6IjQ0NDQ0IiwiaWF0IjoxNjcyNjU5ODc2fQ.q4GDFnP2KsdFDLJR6a8rnNscp44wYQCuNxaTpx8QUZ8","content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"f20e5433-07a9-4295-b187-9bd83969db36","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"30"},"response":"Item : tshirt C successfully added to cart","response status code":200}
+2023-01-02T11:46:01.107Z [INFO] 127.0.0.1 POST /ADDTOCART Inside server events on 
+2023-01-02T11:46:09.567Z [INFO] 127.0.0.1 POST /ADDTOCART Inside POST addtocart request
+2023-01-02T11:46:09.569Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details before adding the item : jean B,tshirt C
+2023-01-02T11:46:09.569Z [INFO] 127.0.0.1 POST /ADDTOCART User cart details after adding the item to cart : jean B,tshirt C,iphone14
+2023-01-02T11:46:09.569Z [INFO] 127.0.0.1 POST /ADDTOCART Successfully added the item to cart NEW ITEM NAME : iphone14
+2023-01-02T11:46:09.571Z [INFO] 127.0.0.1 POST /ADDTOCART {"query params":{},"payload":{"itemname":"iphone14"},"headers":{"authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYXJ1bjQ0NCIsInB3ZCI6IjQ0NDQ0IiwiaWF0IjoxNjcyNjU5ODc2fQ.q4GDFnP2KsdFDLJR6a8rnNscp44wYQCuNxaTpx8QUZ8","content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"4ae99573-622e-4b26-8335-8124dab9bdb9","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"30"},"response":"Item : iphone14 successfully added to cart","response status code":200}
+2023-01-02T11:46:09.571Z [INFO] 127.0.0.1 POST /ADDTOCART Inside server events on 
+2023-01-02T11:46:36.676Z [INFO] 127.0.0.1 POST /GETCART/BUY Inside the request
+2023-01-02T11:46:36.679Z [WARN] 127.0.0.1 POST /GETCART/BUY Decoded value isn't an object
+2023-01-02T11:46:36.682Z [INFO] 127.0.0.1 POST /GETCART/BUY {"query params":{},"payload":{"items":{"tshirt C":1,"iphone14":2,"jean B":3}},"headers":{"authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYXJ1bjQ0IiwicHdkIjoiNDQ0NCIsImlhdCI6MTY3MjYzNjMyNn0.PUR1KUoEZXLph_kSsQYVVEGfQ79Z2W9DxfRknntocsM","content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"f7a66fb9-34f0-41dd-8e96-674b60105ebb","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"94"},"response":"Invalid token being passed in the header","response status code":401}
+2023-01-02T11:46:36.683Z [INFO] 127.0.0.1 POST /GETCART/BUY Inside server events on 
+2023-01-02T11:46:43.723Z [INFO] 127.0.0.1 POST /GETCART/BUY Inside the request
+2023-01-02T11:46:43.724Z [INFO] 127.0.0.1 POST /GETCART/BUY User ordered items before adding current items : undefined
+2023-01-02T11:46:43.725Z [INFO] 127.0.0.1 POST /GETCART/BUY User ordered items after adding current items : [{"tshirt C":{"item_name":"tshirt C","quantity":1,"unit price":190,"total price":190},"iphone14":{"item_name":"iphone14","quantity":2,"unit price":55000,"total price":110000},"jean B":{"item_name":"jean B","quantity":3,"unit price":1150,"total price":3450},"total_price_in_rupees":113640}]
+2023-01-02T11:46:43.725Z [INFO] 127.0.0.1 POST /GETCART/BUY Items has been successfully placed
+2023-01-02T11:46:43.729Z [INFO] 127.0.0.1 POST /GETCART/BUY {"query params":{},"payload":{"items":{"tshirt C":1,"iphone14":2,"jean B":3}},"headers":{"authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYXJ1bjQ0NCIsInB3ZCI6IjQ0NDQ0IiwiaWF0IjoxNjcyNjU5ODc2fQ.q4GDFnP2KsdFDLJR6a8rnNscp44wYQCuNxaTpx8QUZ8","content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"024e07bd-7f83-4c39-bb8c-4ac694578e77","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"94"},"response":{"message":"Items has been placed successfully"},"response status code":200}
+2023-01-02T11:46:43.729Z [INFO] 127.0.0.1 POST /GETCART/BUY Inside server events on 
+2023-01-02T11:47:01.036Z [INFO] 127.0.0.1 POST /BUY Inside /buy request
+2023-01-02T11:47:01.038Z [INFO] 127.0.0.1 POST /BUY User ordered items before adding current items : [{"tshirt C":{"item_name":"tshirt C","quantity":1,"unit price":190,"total price":190},"iphone14":{"item_name":"iphone14","quantity":2,"unit price":55000,"total price":110000},"jean B":{"item_name":"jean B","quantity":3,"unit price":1150,"total price":3450},"total_price_in_rupees":113640}]
+2023-01-02T11:47:01.038Z [INFO] 127.0.0.1 POST /BUY User ordered items before adding current items : [{"tshirt C":{"item_name":"tshirt C","quantity":1,"unit price":190,"total price":190},"iphone14":{"item_name":"iphone14","quantity":2,"unit price":55000,"total price":110000},"jean B":{"item_name":"jean B","quantity":3,"unit price":1150,"total price":3450},"total_price_in_rupees":113640},{"item_name":"jean A","quantity":4,"unit price":900,"total price":3600,"total_price_in_rupees":3600}]
+2023-01-02T11:47:01.038Z [INFO] 127.0.0.1 POST /BUY Item :  jean A has been placed successfully
+2023-01-02T11:47:01.040Z [INFO] 127.0.0.1 POST /BUY {"query params":{},"payload":{"itemname":"jean A","quantity":4},"headers":{"authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYXJ1bjQ0NCIsInB3ZCI6IjQ0NDQ0IiwiaWF0IjoxNjcyNjU5ODc2fQ.q4GDFnP2KsdFDLJR6a8rnNscp44wYQCuNxaTpx8QUZ8","content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"063f574a-29c4-475f-9650-c21de42483a8","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"49"},"response":"jean A has been placed successfully","response status code":200}
+2023-01-02T11:47:01.040Z [INFO] 127.0.0.1 POST /BUY Inside server events on 
+2023-01-02T11:47:15.362Z [INFO] 127.0.0.1 GET /GETORDEREDITEMS Inside /getordereditems request
+2023-01-02T11:47:15.364Z [INFO] 127.0.0.1 GET /GETORDEREDITEMS Successfully responded with the ordered details to the user [{"tshirt C":{"item_name":"tshirt C","quantity":1,"unit price":190,"total price":190},"iphone14":{"item_name":"iphone14","quantity":2,"unit price":55000,"total price":110000},"jean B":{"item_name":"jean B","quantity":3,"unit price":1150,"total price":3450},"total_price_in_rupees":113640},{"item_name":"jean A","quantity":4,"unit price":900,"total price":3600,"total_price_in_rupees":3600}]
+2023-01-02T11:47:15.367Z [INFO] 127.0.0.1 GET /GETORDEREDITEMS {"query params":{"username":"arun9"},"payload":null,"headers":{"authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYXJ1bjQ0NCIsInB3ZCI6IjQ0NDQ0IiwiaWF0IjoxNjcyNjU5ODc2fQ.q4GDFnP2KsdFDLJR6a8rnNscp44wYQCuNxaTpx8QUZ8","content-type":"text/plain","user-agent":"PostmanRuntime/7.30.0","accept":"*/*","postman-token":"675dc102-eb61-494d-87c9-392a609e1b01","host":"localhost:3000","accept-encoding":"gzip, deflate, br","connection":"keep-alive","content-length":"27"},"response":[{"tshirt C":{"item_name":"tshirt C","quantity":1,"unit price":190,"total price":190},"iphone14":{"item_name":"iphone14","quantity":2,"unit price":55000,"total price":110000},"jean B":{"item_name":"jean B","quantity":3,"unit price":1150,"total price":3450},"total_price_in_rupees":113640},{"item_name":"jean A","quantity":4,"unit price":900,"total price":3600,"total_price_in_rupees":3600}],"response status code":200}
+2023-01-02T11:47:15.367Z [INFO] 127.0.0.1 GET /GETORDEREDITEMS Inside server events on 

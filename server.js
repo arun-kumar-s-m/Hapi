@@ -2,6 +2,114 @@ const Hapi = require('hapi'),user = require('./User'),loggingFunction = require(
 const Joi = require('joi');
 // const loggerFile = require('./logger.js')
 const logger = require('./logger.js');
+const {Sequelize , DataTypes} = require('sequelize');
+
+// const sequelize = new Sequelize('sqlite::memory:') // Example for sqlite
+
+// sequelize.sync().then((result) => {
+//     console.log('Sync happened successfully RESULT : ',result);
+// }).catch((err) => {
+//     console.log('Error occurred while syncing.... ',err);
+// });
+
+// const sequelize = new Sequelize('postgres://arunkumarsm:@localhost.com:5432/postgresql_learn',{
+//     logging: (...msg) => console.log(msg)
+// });
+
+const sequelize = new Sequelize('postgresql_learn', 'arunkumarsm', '', {
+    host: 'localhost',
+    dialect: 'postgres'/* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+  });
+
+
+
+//  const User = sequelize.define('UserDetails',{
+//     USER_ID : {
+//         type : DataTypes.INTEGER,
+//         autoIncrement: true,
+//         primaryKey: true
+//     },
+//     FIRST_NAME : {
+//         type : DataTypes.STRING(30),
+//         allowNull: false
+//     },
+//     LAST_NAME : {
+//         type : DataTypes.STRING(30),
+//     },
+//     USERNAME : {
+//         type : DataTypes.STRING(50),
+//         allowNull: false
+//     },
+//     PASSWORD : {
+//         type : DataTypes.STRING(50),
+//         allowNull: false
+//     },
+//     EMAIL : {
+//         type : DataTypes.STRING(50),
+//         allowNull: false,
+//         unique: true
+//     },
+//     PHONE : {
+//         type : DataTypes.STRING(10),
+//         allowNull: false,
+//         unique: true
+//     },
+//     IS_ADMIN : {
+//         type : DataTypes.BOOLEAN,
+//         defaultValue: false 
+//     },
+//     STATUS : {
+//         type : DataTypes.INTEGER,
+//         defaultValue : 0
+//     }
+//  },{
+//     timestamps: true,
+//     createdAt: 'CREATED_TIME',
+//     updatedAt: false
+//  }); 
+
+// async function authCheck(){
+//     console.log("in authchekc..");
+//     await sequelize.authenticate()
+//     console.log("after authchekc....");
+// }
+
+try {
+    // await sequelize.authenticate()
+    // authCheck()
+    // .then(()=>{
+    //     console.log("sucess");
+    // })
+    // .catch((err)=>{
+    //     console.log(err);
+    // })
+    // console.log('Connection has been established successfully. POSTGRESQL Sequelise');
+    // const db = {};
+    // db.Sequelize = Sequelize;
+    // db.sequelize = sequelize;
+    // db.userdetails = require('./modelsnn/users')(sequelize,DataTypes);
+    // db.
+    // await sequelize.authenticate()
+    const User = require('./modelsnn/users')(sequelize,DataTypes);
+    const Address = require('./modelsnn/address')(sequelize,DataTypes);
+    const AmartConstants = require('./modelsnn/amartconstants')(sequelize,DataTypes);
+    const SubCategoryDetails = require('./modelsnn/subcategorydetails')(sequelize,DataTypes);
+    const BaseItems = require('./modelsnn/baseitems')(sequelize,DataTypes);
+    const ProductDetails = require('./modelsnn/productdetails')(sequelize,DataTypes); 
+    const Invoice = require('./modelsnn/invoice')(sequelize,DataTypes);
+    const InvoiceLineItems = require('./modelsnn/invoicelineitems')(sequelize,DataTypes);
+    const AmartFields = require('./modelsnn/amartfields')(sequelize,DataTypes);
+    const AuditLogs = require('./modelsnn/auditlogs')(sequelize,DataTypes);
+
+    sequelize.sync({force : true}).then(() => {
+        console.log('Syncing of tables occurred successfully');
+    }).catch(err =>{
+        console.log("error occurred : ",err);
+    });
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
+  }
+
 
 // const {createLogger,format,transports} = require('winston');
 // const {timestamp,combine,printf,errors} = format;
@@ -211,8 +319,16 @@ const init = async () => {
         port: 3000,
         host: 'localhost'
     });
+    // await User.sync();
+    // console.log("The table for the User model was just (re)created!");
+    // sequelize.sync({ alter: true }).then((result) => {
+    //     console.log('Sync happened successfully RESULT : ',result);
+    // }).catch((err) => {
+    //     console.log('Error occurred while syncing.... ',err);
+    // });
     console.log('in init');
     await server.start();
+    require('./modelsnn/index');
 
     await server.register(require('hapi-geo-locate',(err) => {
             if(err){
@@ -255,6 +371,15 @@ const init = async () => {
     */   
     console.log('URI to access the server : ',server.info.uri); // URI to access the server :  http://localhost:3000
     // console.log('Server running on %s', server.info.uri);
+    // try{
+    //     console.log("auth check");
+    //     // console.log(sequelize);
+    //     // await sequelize.authenticate();
+    //     console.log("auth success");
+    // }
+    // catch(err){
+    //     console.log(err);
+    // }
 };
 
 // const validate = async function (artifacts,decoded, request, h) {
@@ -315,12 +440,33 @@ process.on('unhandledRejection', (err) => {
 });
 
 init();
+// sequelize.sync({ alter: true }).then((result) => {
+//     console.log('Sync happened successfully RESULT : ',result);
+// }).catch((err) => {
+//     console.log('Error occurred while syncing.... ',err);
+// });
+
+server.events.on('response', function (request) {
+    let obj = {};
+    obj['query params'] = request.query;
+    obj['payload'] = request.payload;
+    obj['headers'] = request.headers;
+    obj['response'] = request.response.source;
+    obj['response status code'] = request.response.statusCode;
+    console.log(obj);
+    console.log('Response received is  ::::: ',request.response.source)
+    // logger.info(addRemoteIPToFileLogger('Inside POST sign up request with ',request.location.ip,path,method));
+    logger.info(addRemoteIPToFileLogger(JSON.stringify(obj), request.location.ip,request.path,request.method));
+    logger.info(addRemoteIPToFileLogger('Inside server events on ', request.location.ip,request.path,request.method));
+    // logger.log(request.location.ip + ': ' + request.method.toUpperCase() + ' ' + request.path + ' --> ' + request.response.statusCode);
+});
 
 server.route(
     [{
         method : 'GET',
         path : '/',
         handler : function(request,reply){
+            console.log('-----------------      ARUN      --------------')
             return 'Arun started Hapi framework';
         }
     },
