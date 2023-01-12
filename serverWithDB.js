@@ -182,47 +182,74 @@ categoryWithSubCategories['clothes'] = {};
 categoryWithSubCategories['clothes']['tshirts'] = ['tshirt A','tshirt B','tshirt C'];
 categoryWithSubCategories['clothes']['jeans'] = ['jean A','jean B','jean C'];
 
-function tokenValidator(token){
+function tokenValidator(token,ip,path,method){
     let decoded = '';
+    // jwt.verify(token, 'SECRET_KEY_ARUN').then((decodedd) => {
+    //     if(typeof decodedd != 'object'){
+    //         return 'Invalid token being passed in the header';
+    //     }
+    //     else{
+    //         let uname = decodedd.username, pwd = decodedd.password, user_id = decodedd.user_id,resp = {} , status = 500;
+    //         User.findOne({where : {USER_ID : user_id, USERNAME : uname , PASSWORD : pwd}}).then(result => {
+    //             console.log('RESULT OF QUERY :::::::: ',result);
+    //             if(result == null){
+    //                 return 'Invalid token being passed in the header';
+    //             }
+    //             else{
+    //                 let result = {};
+    //                 result['message'] = 'success';
+    //                 result['uname'] = uname;
+    //                 result['user_id'] = user_id;
+    //                 return result;
+    //             }
+    //         })
+    //     }
+    // }).catch((err) =>  {
+    //     console.log('Error occurred :::::: ',err);
+    //     return err;
+    // });
     jwt.verify(token, 'SECRET_KEY_ARUN',function(err,decodedd){
         let resp = {};
         if(err){
-            // resp['err'] = err;
+            console.log('Any error occurred :::::: ',err);
+            logger.info(addRemoteIPToFileLogger(`Any error occurred :::::: ${err}`,ip,path,method));
             return err;
         }
         else{
             decoded = decodedd;
         }
     });
+
     console.log('Decoded value : ',decoded);
     console.log(typeof decoded);
+
     if(typeof decoded != 'object'){
-        // console.log('AAA');
         return 'Invalid token being passed in the header';
     }
     else{
-        let uname = decoded.user,pwd = decoded.pwd;
-        if(active_user_list[uname] == undefined){
-            // console.log('BBB');
-            return 'Invalid token being passed in the header';
-        }
-        else{
-            // console.log('UNAME : ',uname);
-            let userDetails = active_user_list[uname];
-            // console.log("USER DETAILS :: ",userDetails.getUsername());
-            // console.log("userDetails['password'] : ", userDetails.getPassword());
-            // console.log("pwd :: ",pwd);
-            if(userDetails.getPassword() != pwd){
-                // console.log('CCC');
-                return 'Invalid token being passed in the header';
-            }
-            else{
-                let result = {};
-                result['message'] = 'success';
-                result['uname'] = uname;
-                return result;
-            }
-        }
+        // let resp ;
+        // await User.findOne({where : {USER_ID : decoded.USER_ID, STATUS : 0 }}).then(result => {
+        //     console.log('RES IS : ',result);
+        //     resp = decoded;
+        // }).catch(err =>{
+        //     resp = 'Invalid token being passed in the header';
+        // })
+        return decoded;
+        // return decoded;
+        // let uname = decoded.username, pwd = decoded.password, user_id = decoded.user_id,resp = {} , status = 500;
+        // User.findOne({where : {USER_ID : user_id, USERNAME : uname , PASSWORD : pwd}}).then(result => {
+        //     console.log('RESULT OF QUERY :::::::: ',result);
+        //     if(result == null){
+        //         return 'Invalid token being passed in the header';
+        //     }
+        //     else{
+        //         let result = {};
+        //         result['message'] = 'success';
+        //         result['uname'] = uname;
+        //         result['user_id'] = user_id;
+        //         return result;
+        //     }
+        // })
     }
 }
 const products = {
@@ -496,55 +523,21 @@ server.route(
         method : 'GET',
         path : '/getAllProducts',
         handler : function(request,h){
-            let headers = request.headers;
-            // console.log('Header details : ',headers);
+            let headers = request.headers,method = 'GET',path = '/getAllProducts';
             let authHeader = headers['authorization'];
             if(authHeader == undefined){
                 return h.response('Header missing in the request').code(401);
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
-            if(typeof resp != 'object'){
-                return h.response(resp).code(401);
-            }
-            console.log('Response received : ',resp);
-            console.log('Username after decoding from token : ',resp['uname']);
-            // console.log('Token value : ',token);
-            // let decoded = jwt.verify(token, 'SECRET_KEY_ARUN');
-            // let decoded = 'arun';
-            // jwt.verify(token, 'SECRET_KEY_ARUN',function(err,decodedd){
-            //     let resp = {};
-            //     if(err){
-            //         resp['err'] = err;
-            //         return h.response(resp).code(401);
-            //     }
-            //     else{
-            //         decoded = decodedd;
-            //     }
-            // });
-            // console.log('Decoded value : ',decoded);
-            // console.log(typeof decoded);
-            // if(typeof decoded != 'object'){
-            //     console.log('AAA');
-            //     return h.response('Invalid token being passed in the header').code(401);
-            // }
-            // else{
-            //     let uname = decoded.user,pwd = decoded.pwd;
-            //     if(active_user_list[uname] == undefined){
-            //         console.log('BBB');
-            //         return h.response('Invalid token being passed in the header').code(401);
-            //     }
-            //     else{
-            //         console.log('UNAME : ',uname);
-            //         let userDetails = active_user_list[uname];
-            //         console.log("USER DETAILS :: ",userDetails.getUsername());
-            //         console.log("userDetails['password'] : ", userDetails.getPassword());
-            //         console.log("pwd :: ",pwd);
-            //         if(userDetails.getPassword() != pwd){
-            //             console.log('CCC');
-            //             return h.response('Invalid token being passed in the header').code(401);
-            //         }
-            //     }
-            // }
+            let token = authHeader.replace('Bearer ','');
+            resp = tokenValidator(token,request.location.ip,path,method);
+            // console.log('RESPONSE RECEIVED ::::::::::: ',resp);
+                if(typeof resp != 'object'){
+                    logger.info(addRemoteIPToFileLogger(resp,request.location.ip,path,method));
+                    return h.response(resp).code(401);
+                }
+                else{
+                    logger.info(addRemoteIPToFileLogger(`Token successfully validated and response username : ${resp.username} password : ${resp.password} user ID : ${resp.user_id}`,request.location.ip,path,method));
+                }
             let query_params = request.query,category = query_params['category'],obj = {};
             if(category == undefined){
                 obj.products = products;
@@ -613,6 +606,120 @@ server.route(
     },
     {
         method : 'POST',
+        path : '/addcategory',
+        handler : async function(request,h){
+            let path = '/addtocart',method = request.method,output = {} , status = 500,payload = request.payload;
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                logger.warn((addRemoteIPToFileLogger(`Header value is missing in the request `,request.location.ip,path,method)));
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+            if(typeof resp != 'object'){
+                logger.warn((addRemoteIPToFileLogger('Decoded value of the token isn\'t an object ',request.location.ip,path,method)));
+                return h.response(resp).code(401);
+            }
+            await User.findOne({where : { USER_ID : resp.user_id }}).then(async (result) => {
+                if(result.IS_ADMIN == false){
+                    output.msg = 'User isn\'t admin So unable to perform the action';
+                    status = 401;
+                }
+                else{
+                    let categoryId;
+                    await AmartConstants.create({VALUE : payload['name'] , TYPE : 0 }).then((category) => {
+                        categoryId = category.CONSTANT_ID;
+                    }).catch(err => {
+                        logger.error((addRemoteIPToFileLogger(`Error occurrred while creating category in DB ${err} `,request.location.ip,path,method)));
+                    });
+                    output.msg = 'Successfully created category';
+                    output['category id'] = categoryId;
+                    status = 200;
+                    logger.info(addRemoteIPToFileLogger(`Successfully created category ID : ${categoryId}`,request.location.ip,path,method));
+                }
+            }).catch(err => {
+                output.msg = 'Error occurred while creating category';
+                logger.error(addRemoteIPToFileLogger(`Error occurred while checking user is Admin: : ${err}`,request.location.ip,path,method));
+            });
+            return h.response(output).code(status);
+
+        },
+        config: {
+            validate : {
+                    payload : Joi.object(
+                        {
+                            name : Joi.string().min(4).max(25).required()
+                        }
+                    ),
+                    failAction : function (request,h , source, error) {
+                        return h.response({ code: 400, message: source.details[0].message}).takeover().code(400);
+                    }
+            }
+        }
+    },
+    {
+        method : 'POST',
+        path : '/addsubcategory',
+        handler : async function(request,h){
+            let path = '/addtocart',method = request.method,output = {} , status = 500,payload = request.payload;
+            let authHeader = request.headers['authorization'];
+            if(authHeader == undefined){
+                logger.warn((addRemoteIPToFileLogger(`Header value is missing in the request `,request.location.ip,path,method)));
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+            if(typeof resp != 'object'){
+                logger.warn((addRemoteIPToFileLogger('Decoded value of the token isn\'t an object ',request.location.ip,path,method)));
+                return h.response(resp).code(401);
+            }
+            await User.findOne({where : { USER_ID : resp.user_id }}).then(async (result) => {
+                if(result.IS_ADMIN == false){
+                    output.msg = 'User isn\'t admin So unable to perform the action';
+                    status = 401;
+                }
+                else{
+                    let categoryId = payload['categoryid'],name = payload['subcategory name'],subcategoryId;
+                    await AmartConstants.findOne({ where : {CONSTANT_ID : categoryId}}).then(async category => {
+                        if(category == null){
+                            output.msg = 'Invalid category Id being provided';
+                            status = 401;
+                        }
+                        else{
+                            await SubCategoryDetails.create({ SUB_CATEGORY_NAME : name, CATEGORY_ID : categoryId}).then(subcategory => {
+                                output.msg = 'Successfully created subcategory';
+                                output['sub category id'] = subcategory.SUB_CATEGORY_ID;
+                                status = 200;
+                            })
+                        }
+                    }).catch(err => {
+                        output.msg = 'Error occurred while creating subcategory';
+                        logger.error((addRemoteIPToFileLogger(`Error occurrred while creating subcategory in DB ${err} `,request.location.ip,path,method)));
+                    });
+                    
+                    logger.info(addRemoteIPToFileLogger(`Successfully created sub category ID : ${subcategoryId}`,request.location.ip,path,method));
+                }
+            }).catch(err => {
+                output.msg = 'Error occurred while creating subcategory';
+                logger.error(addRemoteIPToFileLogger(`Error occurred while checking user is Admin: : ${err}`,request.location.ip,path,method));
+            });
+            return h.response(output).code(status);
+
+        },
+        config: {
+            validate : {
+                    payload : Joi.object(
+                        {
+                            'subcategory name' : Joi.string().min(4).max(25).required(),
+                            categoryid : Joi.number().min(1).max(50).required()
+                        }
+                    ),
+                    failAction : function (request,h , source, error) {
+                        return h.response({ code: 400, message: source.details[0].message}).takeover().code(400);
+                    }
+            }
+        }
+    },
+    {
+        method : 'POST',
         path : '/addtocart',
         handler : function(request,h){
             let path = '/addtocart',method = request.method;
@@ -622,7 +729,7 @@ server.route(
                 logger.warn((addRemoteIPToFileLogger(`Header value is missing in the request `,request.location.ip,path,method)));
                 return h.response('Header missing in the request').code(401);
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
             if(typeof resp != 'object'){
                 logger.warn((addRemoteIPToFileLogger('Decoded value of the token isn\'t an object ',request.location.ip,path,method)));
                 return h.response(resp).code(401);
@@ -687,7 +794,7 @@ server.route(
                 logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
             if(typeof resp != 'object'){
                 logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
@@ -714,76 +821,131 @@ server.route(
     {
         method : 'POST',
         path : '/addproduct',
-        handler : function(request,h){
-            let authHeader = request.headers['authorization'],path = '/addproduct',method = request.method;
+        handler : async function(request,h){
+            let authHeader = request.headers['authorization'],path = '/addproduct',method = request.method,payload = JSON.parse(request.payload);
+            // console.log('JJJJJ    KKKKKK  LLLLLL  MMMMM ');
+            // console.log(typeof payload["varieties"]);
+            // let varieties = payload["varieties"];
+            // varieties.forEach(variety =>{
+            //     console.log(' &&&&&&&&&&&&&&&& ');
+            //     console.log("RAM ::: ",variety["RAM"]);
+            //     console.log("memory :::  ",variety['memory']);
+            //     console.log("original price in rupees ::: ",variety['original price in rupees']);
+            //     console.log("discounted price in rupees :::  ",variety['discounted price in rupees']);
+            //     console.log("available quantities ::: ",variety['available quantities']);
+            //     console.log(' &&&&&&&&&&&&&&&& ');
+            // })
+            // return h.response('Hi Arun').code(200);
             logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
             if(authHeader == undefined){
                 logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
             if(typeof resp != 'object'){
                 logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
             // console.log('Response received : ',resp);
             // console.log('Username after decoding from token : ',resp['uname']);
-            let uname = resp['uname'];
-            if(admin_user_list.includes(uname)){
-                let payload = JSON.parse(request.payload),item_name = payload['item_name'],category = payload['category'],subcategory = payload['subcategory'];
-                logger.info(addRemoteIPToFileLogger(`Payload received in the request ${JSON.stringify(payload)}`,request.location.ip,path,method));
-                if(!(admin_user_list.includes(uname))){
-                    logger.warn(addRemoteIPToFileLogger(`Unable to add the product since user is not a Admin ${uname}`,request.location.ip,path,method));
-                    return h.response('Unable to add the product since user is not a Admin').code(400);
-                }
-                else if(category == undefined || category == ''){
-                    logger.warn(addRemoteIPToFileLogger(`Category param is empty`,request.location.ip,path,method));
-                    return h.response('Category param is empty kindly provie proper value to add the product').code(400);
-                }
-                else if(subcategory == undefined || subcategory == ''){
-                    logger.warn(addRemoteIPToFileLogger(`Sub category param is empty`,request.location.ip,path,method));
-                    return h.response('Sub category param is empty kindly provie proper value to add the product').code(400);
-                }
-                else if(item_name == undefined || item_name == ''){
-                    logger.warn(addRemoteIPToFileLogger('Item name is empty kindly provide valid item name',request.location.ip,path,method));
-                    return h.response('Item name is empty kindly provide valid item name').code(400);
+            let output = {},status = 500,userId;
+            console.log("asdfasdf    " ,resp);
+
+            await User.findOne({where : { USER_ID : resp.user_id }}).then(async (result) => {
+                userId = result.USER_ID;
+                if(result.IS_ADMIN == false){
+                    output.msg = 'User isn\'t admin So unable to perform the action';
+                    status = 401;
                 }
                 else{
-                    let invalidPayload = [],name = payload['name to show in ui'], price_in_Rs = payload['price_in_Rs'],discounted_price = payload['discounted_price'];
-                    if(name == undefined || name == '' ){
-                        invalidPayload.push('name to show in ui param is empty.kindly provide proper value');
-                    }
-                    if(price_in_Rs == undefined || price_in_Rs == '' ){
-                        invalidPayload.push('Price in Rs param is empty.kindly provide proper value');
-                    }
-                    if(discounted_price == undefined || discounted_price == ''){
-                        invalidPayload.push('Discounted price in Rs param is empty.kindly provide proper value');
-                    }
-                    if(invalidPayload.length > 0){
-                        let errorObj = {};
-                        errorObj['message'] = 'Certain essential keys are missing in the payload';
-                        errorObj['keys missing'] = invalidPayload;
-                        logger.warn(addRemoteIPToFileLogger(`Invalid keys in payload ${invalidPayload}`,request.location.ip,path,method));
-                        return h.response(errorObj).code(400);
-                    }
-                    else{
-                        let newproductObj = {};
-                        newproductObj["name"] = name;
-                        newproductObj["price_in_Rs"] = price_in_Rs;
-                        newproductObj["discounted_price"] = discounted_price;
-                        if(categoryWithSubCategories[category][subcategory] == undefined){
-                            categoryWithSubCategories[category][subcategory] = [];
-                        }
-                        categoryWithSubCategories[category][subcategory].push(item_name);
-                        products[item_name] = newproductObj;
-                        logger.info(addRemoteIPToFileLogger('Item has been successfully added',request.location.ip,path,method));
-                        return h.response('Item has been successfully added').code(200);
-                    }
+                    await BaseItems.create({ITEM_NAME : payload['name'],ITEM_INFO : payload['basic'],CREATED_USER : userId}).then((baseitems) => {
+                        // baseitems.createProductDetails({ADDITONAL_INFO : payload[]})
+                        // console.log('JJJJJ    KKKKKK  LLLLLL  MMMMM ');
+                        // console.log(typeof payload['varieties']);
+                        let varieties = payload["varieties"];
+                        varieties.forEach(async variety =>{
+                            let item_price = variety['original price in rupees'],discount_price = variety['discounted price in rupees'],available_qty = variety['available quantities'];
+                            delete variety['original price in rupees'];
+                            delete variety['discounted price in rupees'];
+                            delete variety['available quantities'];
+                            output.msg = `Product successfully got created`;
+                            status = 200;
+                            let arr = [];
+                            await ProductDetails.create({ADDITONAL_INFO : variety, AVAILABLE_QUANTITY : available_qty, ORIGINAL_PRICE : item_price, DISCOUNTED_PRICE : discount_price,CREATED_USER : result.USER_ID, BASE_ITEM_ID : baseitems.BASE_ITEM_ID,CATEGORY_ID : payload['category'], SUB_CATEGORY_ID : payload['subcategory'], IS_ACTIVE : true}).then(product => {
+                                logger.info(addRemoteIPToFileLogger(`Product successfully got created  ${product.PRODUCT_ID}`,request.location.ip,path,method));
+                                // output.msg = `Product successfully got created`;
+                                arr.push(product.PRODUCT_ID);
+                                // status = 200;
+                            });
+                            output['Created product id\'s'] = arr;
+
+                        })
+                    }).catch(err => {
+                        logger.error(addRemoteIPToFileLogger(`Error occurred while creating Base Items ${err}`,request.location.ip,path,method));
+                        output.msg = 'Error occurred while creating products';
+                    });
                 }
-            }
-            else{
-                return h.response('User isn\'t admin So unable to perform the action').code(401);
-            }
+            }).catch(err => {
+                output.msg = `Error occurred while creating products`;
+                logger.error(addRemoteIPToFileLogger(`Error occurred while executing statement : ${err}`,request.location.ip,path,method));
+            });
+
+            return h.response(output).code(status);
+            // if(admin_user_list.includes(uname)){
+            //     let item_name = payload['item_name'],category = payload['category'],subcategory = payload['subcategory'];
+            //     logger.info(addRemoteIPToFileLogger(`Payload received in the request ${JSON.stringify(payload)}`,request.location.ip,path,method));
+            //     if(!(admin_user_list.includes(uname))){
+            //         logger.warn(addRemoteIPToFileLogger(`Unable to add the product since user is not a Admin ${uname}`,request.location.ip,path,method));
+            //         return h.response('Unable to add the product since user is not a Admin').code(400);
+            //     }
+            //     else if(category == undefined || category == ''){
+            //         logger.warn(addRemoteIPToFileLogger(`Category param is empty`,request.location.ip,path,method));
+            //         return h.response('Category param is empty kindly provie proper value to add the product').code(400);
+            //     }
+            //     else if(subcategory == undefined || subcategory == ''){
+            //         logger.warn(addRemoteIPToFileLogger(`Sub category param is empty`,request.location.ip,path,method));
+            //         return h.response('Sub category param is empty kindly provie proper value to add the product').code(400);
+            //     }
+            //     else if(item_name == undefined || item_name == ''){
+            //         logger.warn(addRemoteIPToFileLogger('Item name is empty kindly provide valid item name',request.location.ip,path,method));
+            //         return h.response('Item name is empty kindly provide valid item name').code(400);
+            //     }
+            //     else{
+            //         let invalidPayload = [],name = payload['name to show in ui'], price_in_Rs = payload['price_in_Rs'],discounted_price = payload['discounted_price'];
+            //         if(name == undefined || name == '' ){
+            //             invalidPayload.push('name to show in ui param is empty.kindly provide proper value');
+            //         }
+            //         if(price_in_Rs == undefined || price_in_Rs == '' ){
+            //             invalidPayload.push('Price in Rs param is empty.kindly provide proper value');
+            //         }
+            //         if(discounted_price == undefined || discounted_price == ''){
+            //             invalidPayload.push('Discounted price in Rs param is empty.kindly provide proper value');
+            //         }
+            //         if(invalidPayload.length > 0){
+            //             let errorObj = {};
+            //             errorObj['message'] = 'Certain essential keys are missing in the payload';
+            //             errorObj['keys missing'] = invalidPayload;
+            //             logger.warn(addRemoteIPToFileLogger(`Invalid keys in payload ${invalidPayload}`,request.location.ip,path,method));
+            //             return h.response(errorObj).code(400);
+            //         }
+            //         else{
+            //             let newproductObj = {};
+            //             newproductObj["name"] = name;
+            //             newproductObj["price_in_Rs"] = price_in_Rs;
+            //             newproductObj["discounted_price"] = discounted_price;
+            //             if(categoryWithSubCategories[category][subcategory] == undefined){
+            //                 categoryWithSubCategories[category][subcategory] = [];
+            //             }
+            //             categoryWithSubCategories[category][subcategory].push(item_name);
+            //             products[item_name] = newproductObj;
+            //             logger.info(addRemoteIPToFileLogger('Item has been successfully added',request.location.ip,path,method));
+            //             return h.response('Item has been successfully added').code(200);
+            //         }
+            //     }
+            // }
+            // else{
+            //     return h.response('User isn\'t admin So unable to perform the action').code(401);
+            // }
         }
     },
     {
@@ -796,7 +958,7 @@ server.route(
                 logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
             if(typeof resp != 'object'){
                 logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
@@ -861,7 +1023,7 @@ server.route(
                 logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
             if(typeof resp != 'object'){
                 logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
@@ -913,7 +1075,7 @@ server.route(
                 logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
             if(typeof resp != 'object'){
                 logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
@@ -1006,7 +1168,7 @@ server.route(
                 logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
             if(typeof resp != 'object'){
                 logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
@@ -1073,7 +1235,7 @@ server.route(
                 logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
                 return h.response('Header missing in the request').code(401);
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
             if(typeof resp != 'object'){
                 logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
@@ -1115,11 +1277,11 @@ server.route(
         method : 'GET',
         path : '/userlogs',
         handler : function(request,h){
-            let authHeader = request.headers['authorization'];
+            let authHeader = request.headers['authorization'],method = 'GET',path ='/userlogs';
             if(authHeader == undefined){
                 return h.response('Header missing in the request').code(401);
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
             if(typeof resp != 'object'){
                 return h.response(resp).code(401);
             }
@@ -1138,140 +1300,33 @@ server.route(
     {
         method : 'GET',
         path : '/user/signin',
-        handler : function(request,h){
-            let query_params = request.query,uname = query_params['username'],pwd = query_params['password'],path = '/user/signin',method = request.method;
-            let msg;
-            // logger.info(addRemoteIPToFileLogger(`Successfully created account with user name as : ${uname}`,request.location.ip,path,method));
-            logger.info(addRemoteIPToFileLogger(`Inside GET sign in request : username : ${uname} password : ${pwd}`,request.location.ip,path,method));
-            if((uname == undefined || uname == "" ) || (pwd == undefined || pwd == "" ) ){
-                    msg = 'Username and password are mandatory field.Kindly provide them';
-                    if(uname != undefined && uname != ""){
-                        logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('User provided empty password for signing into his account',request.location,logs[uname]);
-                    }
-                    return h.response(msg).code(400);
-            }
-            console.log('BEFORE AWAIT ::::::');
-            let result =  User.findOne({where : { USERNAME : uname,PASSWORD : pwd }});
-
-            console.log('INSIDE RESULT :::::: ',result);
-            let responseObj = result.then(resultt => {
-                console.log('INSIDE AWAIT ::::::',resultt);
-                let resp = {},status;
-                if(resultt == null){
-                    console.log('INSIDE NULL ::::::::: ');
-                    resp.msg = 'There doesn\'t lie any user with the given credentials';
-                    logger.error(addRemoteIPToFileLogger(`User provided invalid username in the request`,request.location.ip,path,method));
-                    resp.status = 400;
-                    return h.response(resp).code(400);
+        handler : async function(request,h){
+            let query_params = request.query,uname = query_params['username'],pwd = query_params['password'],path = '/user/signin',method = 'GET';
+            let resp = {}, status = 500;
+            await User.findOne({where : { USERNAME : uname,PASSWORD : pwd }}).then((result) => {
+                if(result == null){
+                    resp.msg = 'Wrong Credentials';
+                    logger.error(addRemoteIPToFileLogger('Wrong Credentials',request.location.ip,path,method));
+                    status = 400;
                     // return h.response(resp).code(status);
                 }
                 else{
-                    // result.then(res => {
-                        console.log('SUCCESS   ::::::::::::::     ',resultt);
-                        // if(res == null){
-                        //     resp.msg = 'Improper credentials';
-                        //     status = 400;
-                        //     logger.info(addRemoteIPToFileLogger(`Improper credentials`,request.location.ip,path,method));
-                        // }
-                        // else{
-                            resp.msg = 'Successfully loggged in';
-                            resp.status = 200;
-
-                            console.log('USER_ID PRINT 1 ::::::::::: ',resultt['USER_ID']);
-                            console.log('USER_ID PRINT 2 ::::::::::: ',resultt.USER_ID);
-                            console.log('USER_ID PRINT 3 ::::::::::: ',resultt.id);
-                            let token = jwt.sign({ 
-                                user : uname,
-                                pwd : pwd,
-                                id : resultt['USER_ID'],
-                            }, 'SECRET_KEY_ARUN');
-                            resp.token = token;
-                            console.log('TOKEN   ::::::::::::::     ',token);
-                            return h.response(resp).code(200);
-                            // logger.info(addRemoteIPToFileLogger(`Successfully logged into the account : uname : ${uname}`,request.location.ip,path,method));
-                            // return h.response(resp).code(status);
-                        // }
-                        // return h.response(resp).code(status);
-                    // }
-                    // )
-                    // .catch(err => {
-                    //     msg = err.message;
-                    //     logger.error(addRemoteIPToFileLogger(msg,request.location.ip,path,method));
-                    //     return h.response(msg).code(500);
-                    // });
+                    resp.msg = 'Successfully logged into the account';
+                    status = 200;
+                    let token = jwt.sign({ 
+                        username : uname,
+                        password : pwd,
+                        user_id : result.USER_ID
+                    }, 'SECRET_KEY_ARUN');
+                    logger.info(addRemoteIPToFileLogger('Successfully logged into the account and Token provided in the response',request.location.ip,path,method));
+                    resp.token = token;
                 }
             }).catch(err => {
-                msg = err.message;
-                logger.error(addRemoteIPToFileLogger(msg,request.location.ip,path,method));
-                return h.response(msg).code(500);
+                console.log('Error occurred while executing statement : ',err);
+                logger.error(addRemoteIPToFileLogger(`Error occurred while executing statement : ${err}`,request.location.ip,path,method));
             });
-            console.log('RESPONSE CODE ::::::: ',responseObj.msg);
-            console.log('RESPONSE CODE ::::::: ',responseObj);
-            return h.response(responseObj.msg).code(200);
-                // console.log('RESULT is ::::::::: ',result);
-                
-            // checkUserFromDB();
-            // async function checkUserFromDB(){
-            //     // let result = await User.findOne({where : { USERNAME : uname,PASSWORD : pwd }});
-            //     // console.log('RESULT is ::::::::: ',result);
-            //     // result.then(res => {
-            //     //     let resp = {},status;
-            //     //     if(res == null){
-            //     //         console.log('INSIDE NULL ::::::::: ');
-            //     //         resp.msg = 'There doesn\'t lie any user with the given credentials';
-            //     //         logger.error(addRemoteIPToFileLogger(`User provided invalid username in the request`,request.location.ip,path,method));
-            //     //         status = 400;
-            //     //     }
-            //     //     else{
-            //     //         resp.msg = 'Successfully logged into the account';
-            //     //         console.log('SUCCESS   ::::::::::::::     ');
-            //     //         status = 200;
-            //     //         let token = jwt.sign({ 
-            //     //             user : uname,
-            //     //             pwd : pwd,
-            //     //             id : res.id,
-            //     //         }, 'SECRET_KEY_ARUN');
-            //     //         resp.token = token;
-            //     //         console.log('TOKEN   ::::::::::::::     ',token);
-
-            //     //     }
-            //     //     logger.info(addRemoteIPToFileLogger(`Successfully logged into the account : uname : ${uname}`,request.location.ip,path,method));
-            //     //     // console.log('success Result : ',res);
-            //     //     return h.response(resp).code(status);
-            //     // }).catch(err => {
-            //     //     msg = err.message;
-            //     //     // console.log('unable to get data Error : ',err);
-            //     //     logger.error(addRemoteIPToFileLogger(msg,request.location.ip,path,method));
-            //     //     return h.response(msg).code(400);
-            //     // });
-            // }
-            // if(uname in active_user_list){
-            //     let userdetails = active_user_list[uname];
-            //     if(userdetails.getPassword() == pwd){
-            //         logger.info(addRemoteIPToFileLogger(`Successfully logged into the account : uname : ${uname}`,request.location.ip,path,method));
-            //         let resp = {};
-            //         let token = jwt.sign({ 
-            //             user : uname,
-            //             pwd : pwd,
-            //         }, 'SECRET_KEY_ARUN');
-            //         resp.msg = 'Successfully logged into the account';
-            //         resp.token = token;
-            //         logs[uname] = loggingFunction.loggingTheActionToGlobalVariable(msg,request.location,logs[uname]);
-            //         return h.response(resp).code(201);
-            //     }
-            //     else{
-            //         msg = 'Entered password is wrong';
-            //         logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('User provided wrong password for signing into his account',request.location,logs[uname]);
-            //         logger.error(addRemoteIPToFileLogger(`Entered password is wrong for uname :  ${uname}`,request.location.ip,path,method));
-            //         return h.response(msg).code(400);
-            //     }
-            // }
-            // else{
-            //         msg = 'Mentioned username is improper';
-            //         logger.error(addRemoteIPToFileLogger(`User provided invalid username in the request ${uname}`,request.location.ip,path,method));
-            //         return h.response(msg).code(400);
-            // }
-    
+            return h.response(resp).code(status);
+        
         },
         config : {
             validate : {
@@ -1298,11 +1353,11 @@ server.route(
         path : '/users',
         handler : function(request,h){
             // let headers = request.headers;
-            let authHeader = request.headers['authorization'];
+            let authHeader = request.headers['authorization'], method = 'GET',path = '/users';
             if(authHeader == undefined){
                 return h.response('Header missing in the request').code(401);
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
             if(typeof resp != 'object'){
                 return h.response(resp).code(401);
             }
@@ -1327,11 +1382,11 @@ server.route(
         method : 'POST',
         path : '/product/outofstock',
         handler : function(request,h){
-            let authHeader = request.headers['authorization'];
+            let authHeader = request.headers['authorization'],method = 'POST',path = '/product/outofstock';
             if(authHeader == undefined){
                 return h.response('Header missing in the request').code(401);
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token);
+            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
             console.log('Resp after token validation : ',resp);
             if(typeof resp != 'object'){
                 return h.response(resp).code(401);
@@ -1369,27 +1424,70 @@ server.route(
     {
         method : 'POST',
         path : '/makeuseradmin',
-        handler : function(request,h){
-            let queryparams = request.query,uname = queryparams['username'];
-            if(uname == undefined || uname == '' || !(uname in active_user_list)){
-                console.log('Admin list : ',admin_user_list);
-                return h.response('kindly provide valid username in request payload').code(400);
-            }
-            // else if(!(uname in active_user_list)){
-            //     console.log('Admin list : ',admin_user_list);
-            //     return h.response(`Mentioned username : ${uname} is invalid`).code(400);
-            // }
-            else{
-                if(admin_user_list.includes(uname)){
-                    console.log('Admin list : ',admin_user_list);
-                    return h.response(`Mentioned username : ${uname} is already an Admin`).code(200);
+        handler : async function(request,h){
+            let queryparams = request.query,uname = queryparams['username'],method = 'POST',path = '/makeuseradmin',resp = {}, status = 200;
+            resp.msg = 'User will be made as admin in few secs ';
+
+            await User.findOne({where : { USERNAME : uname }}).then((result) => {
+                if(result == null){
+                    resp.msg = 'Invalid username provided';
+                    logger.error(addRemoteIPToFileLogger('Invalid username provided',request.location.ip,path,method));
+                    status = 400;
+                    // return h.response(resp).code(status);
                 }
                 else{
-                    admin_user_list.push(uname);
-                    console.log('Admin list : ',admin_user_list);
-                    return h.response(`Added user : ${uname} as Admin`).code(200);
+                    console.log(result.USER_ID, ' *********** ',result.IS_ADMIN);
+                    if(result.IS_ADMIN == true){
+                        resp.msg = `Mentioned username : ${uname} is already an Admin`;
+                        status = 200;
+                    }
+                    else{
+                        console.log('A########D');
+                        User.update({
+                            IS_ADMIN : true
+                        },
+                        {
+                            where : {
+                                USER_ID : result.USER_ID
+                            }
+                        }).then(result => {
+                                console.log(result);
+                                resp.msg = `Updated username : ${uname} as Admin`;
+                                status = 200;
+                            } 
+                        ).catch(error => {
+                            logger.error(addRemoteIPToFileLogger(`Error occurred while updating user as Admin : ${err}`,request.location.ip,path,method));
+                        });
+                        console.log('B########E');
+                    }
+                    // logger.info(addRemoteIPToFileLogger('Successfully logged into the account and Token provided in the response',request.location.ip,path,method));
+                    // resp.token = token;
                 }
-            }
+            }).catch((err) => {
+                // console.log('Error occurred while executing statement : ',err);
+                logger.error(addRemoteIPToFileLogger(`Error occurred while finding user existence from DB  : ${err}`,request.location.ip,path,method));
+            });
+            return h.response(resp).code(status);
+
+            // if(uname == undefined || uname == '' || !(uname in active_user_list)){
+            //     console.log('Admin list : ',admin_user_list);
+            //     return h.response('kindly provide valid username in request payload').code(400);
+            // }
+            // // else if(!(uname in active_user_list)){
+            // //     console.log('Admin list : ',admin_user_list);
+            // //     return h.response(`Mentioned username : ${uname} is invalid`).code(400);
+            // // }
+            // else{
+            //     if(admin_user_list.includes(uname)){
+            //         console.log('Admin list : ',admin_user_list);
+            //         return h.response(`Mentioned username : ${uname} is already an Admin`).code(200);
+            //     }
+            //     else{
+            //         admin_user_list.push(uname);
+            //         console.log('Admin list : ',admin_user_list);
+            //         return h.response(`Added user : ${uname} as Admin`).code(200);
+            //     }
+            // }
             // for(const [key,value] of Object.entries(active_user_list)){
             //     obj[key] = value.getPassword();
             // }
