@@ -906,6 +906,146 @@ server.route(
         }
     },
     {
+        method : ['POST'],
+        path : '/add/address',
+        handler : async function(request,h){
+            let status = 500,response = {};
+            try{
+                let authHeader = request.headers['authorization'],path = '/add/adddress',method = request.method;
+                logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
+                if(authHeader == undefined){
+                    logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
+                    return h.response('Header missing in the request').code(401);
+                }
+                let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+                if(typeof resp != 'object'){
+                    logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
+                    return h.response(resp).code(401);
+                }
+                let userid = resp.user_id,payload = request.payload;
+
+                const user = await User.findOne({where : { USER_ID : userid}});
+                if(user == null){
+                    response.msg = 'Improper user';
+                    status = 400;
+                }
+                else{
+                    let updateJson = {FLAT_NO : payload['flat no'], FLAT_NAME : payload['flat name'],STREET : payload.street,CITY : payload.city,STATE : payload.state,PINCODE : payload.pincode, USER_ID : userid};
+                    updateJson.ADDRESS_TYPE = payload["address type"] == "work" ? 0 : 1;
+                    const address = await Address.create(updateJson);
+                    logger.info(addRemoteIPToFileLogger(`Address ID : ${address.ADDRESS_ID} added successfully`,request.location.ip,path,method));
+                    let auditlog =  await AuditLogs.create({ACTIONS : 'New Address addition',FIELDS_AFFECTED : updateJson,RECORD_ID : address.ADDRESS_ID,USER_ID : userid,MODULE_ID : moduleWithIdDetails['User']});
+                    logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                    response.msg = 'Address has been added successfully';
+                    status = 200;
+                }
+            }
+            catch(error){
+                response.msg = 'Error occurred while adding address';
+                logger.error(addRemoteIPToFileLogger(`Error occurred while adding address ${error}`,request.location.ip,'/add/address',request.method));
+            }
+            return h.response(response).code(200);
+        },
+        config : {
+            validate : {
+                payload : Joi.object(
+                    {
+                        'flat no' : Joi.number().min(1).max(32000).required(),
+                        'flat name' : Joi.string().min(3).max(30),
+                        street : Joi.string().min(3).max(20).required(),
+                        city : Joi.string().min(3).max(20).required(),
+                        state : Joi.string().min(3).max(20).required(),
+                        pincode : Joi.string().min(6).max(6).required(),
+                        'address type' : Joi.string().valid('home','work').required()
+                    }
+                ),
+                failAction : function (request,h , source, error) {
+                    let obj = [];
+                    source.details.forEach(errorMsg => obj.push(errorMsg.message));
+                    return h.response({ code: 400, message: obj}).takeover().code(400);
+                }
+            }
+        }
+    },
+    {
+        method : ['PUT'],
+        path : '/edit/address',
+        handler : async function(request,h){
+            let status = 500,response = {};
+            try{
+                let authHeader = request.headers['authorization'],path = '/edit/adddress',method = request.method;
+                logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
+                if(authHeader == undefined){
+                    logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
+                    return h.response('Header missing in the request').code(401);
+                }
+                let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+                if(typeof resp != 'object'){
+                    logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
+                    return h.response(resp).code(401);
+                }
+                let userid = resp.user_id,payload = request.payload,address_id = payload['address id'];
+                const user = await User.findOne({where : { USER_ID : userid}});
+                const address  = await Address.findOne({where : {USER_ID : userid,ADDRESS_ID : address_id}})
+                if(user == null){
+                    response.msg = 'Improper user';
+                    status = 400;
+                }
+                else if(address == null){
+                    response.msg = 'Improper address';
+                    status = 400;
+                }
+                else{
+                    let updateJson = {};
+                    const reqKeysWithServerKeys = {'flat no' : 'FLAT_NO','flat name' : 'FLAT_NAME','address type' : 'ADDRESS_TYPE','street' : 'STREET','city' : 'CITY','state' : 'STATE','pincode' : 'PINCODE'};
+                    for(let [key,value] of Object.entries(payload)){
+                        if(key == 'address id'){
+                            continue;
+                        }
+                        if(key == "address type"){
+                            value = (value == "work") ? 0 : 1;
+                        }
+                        updateJson[reqKeysWithServerKeys[key]] = value;
+                    }
+                    console.log(updateJson);
+                    const address = await Address.update(updateJson,{where : {ADDRESS_ID : address_id}});
+                    console.log(address);
+                    logger.info(addRemoteIPToFileLogger(`Address ID : ${address.ADDRESS_ID} updated successfully`,request.location.ip,path,method));
+                    let auditlog =  await AuditLogs.create({ACTIONS : 'Address updation',FIELDS_AFFECTED : updateJson,RECORD_ID : address_id,USER_ID : userid,MODULE_ID : moduleWithIdDetails['User']});
+                    logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                    response.msg = 'Address has been updated successfully';
+                    status = 200;
+                }
+            }
+            catch(error){
+                response.msg = 'Error occurred while updating address';
+                logger.error(addRemoteIPToFileLogger(`Error occurred while updating address ${error}`,request.location.ip,'/edit/address',request.method));
+            }
+            return h.response(response).code(200);
+        },
+        config : {
+            validate : {
+                payload : Joi.object(
+                    {
+                        'flat no' : Joi.number().min(1).max(32000),
+                        'flat name' : Joi.string().min(3).max(30),
+                        street : Joi.string().min(3).max(20),
+                        city : Joi.string().min(3).max(20),
+                        state : Joi.string().min(3).max(20),
+                        pincode : Joi.string().min(6).max(6),
+                        'address type' : Joi.string().valid('home','work'),
+                        'address id' : Joi.number().min(1).max(500).required()
+                    }
+                ),
+                failAction : function (request,h , source, error) {
+                    let obj = [];
+                    source.details.forEach(errorMsg => obj.push(errorMsg.message));
+                    return h.response({ code: 400, message: obj}).takeover().code(400);
+                }
+            }
+        }
+    },
+    {
         method : 'DELETE',
         path : '/products/delete',
         handler : async function(request,h){
@@ -1412,78 +1552,42 @@ server.route(
         method : 'POST',
         path : '/makeuseradmin',
         handler : async function(request,h){
-            let queryparams = request.query,uname = queryparams['username'],method = 'POST',path = '/makeuseradmin',resp = {}, status = 200;
-            resp.msg = 'User will be made as admin in few secs ';
+            let resp = {}, status = 500,method = 'POST',path = '/makeuseradmin';
+            try{
+                let queryparams = request.query,user_id = queryparams['user id'];
 
-            await User.findOne({where : { USERNAME : uname }}).then((result) => {
-                if(result == null){
+                const user = await User.findOne({where : { USER_ID : user_id }});
+                if(user == null){
                     resp.msg = 'Invalid username provided';
                     logger.error(addRemoteIPToFileLogger('Invalid username provided',request.location.ip,path,method));
                     status = 400;
-                    // return h.response(resp).code(status);
                 }
                 else{
-                    console.log(result.USER_ID, ' *********** ',result.IS_ADMIN);
-                    if(result.IS_ADMIN == true){
-                        resp.msg = `Mentioned username : ${uname} is already an Admin`;
+                    if(user.IS_ADMIN == true){
+                        resp.msg = `Mentioned user ID : ${user_id} is already an Admin`;
                         status = 200;
                     }
                     else{
-                        console.log('A########D');
-                        User.update({
-                            IS_ADMIN : true
-                        },
-                        {
-                            where : {
-                                USER_ID : result.USER_ID
-                            }
-                        }).then(result => {
-                                console.log(result);
-                                resp.msg = `Updated username : ${uname} as Admin`;
-                                status = 200;
-                            } 
-                        ).catch(error => {
-                            logger.error(addRemoteIPToFileLogger(`Error occurred while updating user as Admin : ${err}`,request.location.ip,path,method));
-                        });
-                        console.log('B########E');
+                        let updateJson = { IS_ADMIN : true};
+                        const userUpdate = User.update(updateJson,{ where : { USER_ID : user_id}});
+                        logger.info(addRemoteIPToFileLogger(`User ID : ${user_id} has been made as Admin successfully`,request.location.ip,path,method));
+                        let auditlog =  await AuditLogs.create({ACTIONS : 'Making User Admin',FIELDS_AFFECTED : updateJson,RECORD_ID : user_id,USER_ID : user_id,MODULE_ID : moduleWithIdDetails['User']});
+                        logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                        resp.msg = `Updated user ID : ${user_id} as Admin`;
+                        status = 200;
                     }
-                    // logger.info(addRemoteIPToFileLogger('Successfully logged into the account and Token provided in the response',request.location.ip,path,method));
-                    // resp.token = token;
                 }
-            }).catch((err) => {
-                // console.log('Error occurred while executing statement : ',err);
-                logger.error(addRemoteIPToFileLogger(`Error occurred while finding user existence from DB  : ${err}`,request.location.ip,path,method));
-            });
+            }    
+            catch(error){
+                logger.error(addRemoteIPToFileLogger(`Error occurred while making user as Admin : ${error}`,request.location.ip,path,method));
+                resp.msg = 'Error occurred while making user as Admin';
+            }
             return h.response(resp).code(status);
-
-            // if(uname == undefined || uname == '' || !(uname in active_user_list)){
-            //     console.log('Admin list : ',admin_user_list);
-            //     return h.response('kindly provide valid username in request payload').code(400);
-            // }
-            // // else if(!(uname in active_user_list)){
-            // //     console.log('Admin list : ',admin_user_list);
-            // //     return h.response(`Mentioned username : ${uname} is invalid`).code(400);
-            // // }
-            // else{
-            //     if(admin_user_list.includes(uname)){
-            //         console.log('Admin list : ',admin_user_list);
-            //         return h.response(`Mentioned username : ${uname} is already an Admin`).code(200);
-            //     }
-            //     else{
-            //         admin_user_list.push(uname);
-            //         console.log('Admin list : ',admin_user_list);
-            //         return h.response(`Added user : ${uname} as Admin`).code(200);
-            //     }
-            // }
-            // for(const [key,value] of Object.entries(active_user_list)){
-            //     obj[key] = value.getPassword();
-            // }
-            // return h.response(obj).code(200);
         },
         config : {
             validate : {
                 query : Joi.object({
-                    username : Joi.string().min(4).max(10).required()
+                    'user id' : Joi.number().min(1).max(500).required()
                 }
                 ),
                 failAction : function (request,h , source, error) {
@@ -1545,150 +1649,3 @@ server.route(
         }
     }]
 )
-
-
-// server.route({
-//     method : 'GET',
-//     path : '/findmyipaddress',
-//     handler : function(request,h){
-//         console.log('Finding ip related details using plugin : ', request.location);
-//         const queryparams = request.query;
-//         let uname = logs[queryparams['username']];
-//         if(uname == undefined || uname == ''){
-//             return h.response('Username param in query is mandatory for finding the IP Address').code(400);
-//         }
-//         // let loggerObj = loggingFunction.createLoggerObjForCurrentAction('User requested to find his IP Address',request.location);
-//         // let logsArrayOfUser = loggingFunction.loggingTheActionToGlobalVariable('User requested to find his IP Address',request.location,logs[uname]);
-//         // let userlogs = logs[queryparams['username']];
-//         // if(userlogs == undefined){
-//         //     userlogs  = [];          
-//         // }
-//         // userlogs.push(loggerObj);
-//         logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('User requested to find his IP Address',request.location,logs[uname]);
-//         // console.log('complete logs : ',logs);
-//         console.log('User log details : ',logs[uname]);
-//         return h.response(request.location).code(200);
-//     }
-// })
-
-// server.route({
-//     method : 'GET',
-//     path : '/user/signin',
-//     handler : function(request,h){
-//         let query_params = request.query,uname = query_params['username'],pwd = query_params['password'];
-//         let msg;
-
-//         if((uname == undefined || uname == "" ) || (pwd == undefined || pwd == "" ) ){
-//                 msg = 'Username and password are mandatory field.Kindly provide them';
-//                 if(uname != undefined && uname != ""){
-//                     logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('User provided empty password for signing into his account',request.location,logs[uname]);
-//                 }
-//                 return h.response(msg).code(400);
-//         }
-
-//         if(uname in active_user_list){
-//             let userdetails = active_user_list[uname];
-//             if(userdetails.getPassword() == pwd){
-//                 msg = 'Successfully logged into the account';
-//                 logs[uname] = loggingFunction.loggingTheActionToGlobalVariable(msg,request.location,logs[uname]);
-//                 return h.response(msg).code(201);
-//             }
-//             else{
-//                 msg = 'Entered password is wrong';
-//                 logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('User provided wrong password for signing into his account',request.location,logs[uname]);
-//                 return h.response(msg).code(400);
-//             }
-//         }
-//         else{
-//                 msg = 'Mentioned username is improper';
-//                 return h.response(msg).code(400);
-//         }
-
-//     }
-// })
-// This API is for ***** INTERNAL PURPOSE ****** 
-// server.route({
-//     method : 'GET',
-//     path : '/users',
-//     handler : function(request,h){
-//             let obj = {};
-//             for(const [key,value] of Object.entries(active_user_list)){
-//                obj[key] = value.getPassword();
-//             }
-//             return h.response(obj).code(200);
-//         }
-
-//     })
-
-
-// WORKING IN V16.0.0 OF HAPI JS BUT NOT IN V18.0.0 
-// const server = new Hapi.Server({
-//     host : 'localhost',
-//     port : 3000
-// })
-
-// server.({
-//     host : 'localhost',
-//     port : 3000
-// })
-
-// server.route(){
-
-// }
-
-
-// server.route({
-//     method : 'POST',
-//     path : '/user/signup',
-//     handler : function(request,h){
-
-//         try{
-//             let query_params = JSON.parse(request.payload);
-//             // console.log(typeof query_params);
-
-//             if((query_params['username'] == undefined || query_params['username'] == "" ) || (query_params['password'] == undefined || query_params['password'] == "" ) || (query_params['email'] == undefined || query_params['email'] == "" )){
-//                 return h.response('Username, Password and Email id is a mandatory field kindly provide them').code(400);
-//             }
-//             if(registered_email_ids.includes(query_params['email'])){
-//                 return h.response('Email ID provided is already being registered').code(400);
-//             }
-//             if(query_params['username'] in active_user_list){
-//                 return h.response('User Name isn\'t available Kindly provide some other names').code(400);
-//             }
-
-//             let obj = {},uname = query_params['username'];
-//             obj.uname = query_params['username'];
-//             obj.pwd = query_params['password'];
-//             obj.fname = query_params['first_name'];
-//             obj.lname = query_params['last_name'];
-//             obj.email = query_params['email'];
-//             obj.phone = query_params['phone'];
-
-//             let userObj = new user(obj);
-//             active_user_list[uname] = userObj;
-//             // console.log('Active user list : ',active_user_list);
-//             registered_email_ids.push(query_params['email']);
-//             // query_params.hostname = 'localhost'
-//             let ip_address = request.location;
-//             console.log('User ip address : ',ip_address);
-//             logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('Successfully created account for the user',request.location,logs[uname]);
-//             return h.response('Successfully created account').code(200);
-//         }
-//         catch(err){
-//             let errorObj = {};
-//             errorObj.error_message = err.message;
-//             errorObj.message = 'Unable to create account at this moment';
-//             return h.response(errorObj).code(500);
-//         }
-//     }
-// })
-
-// FROM V17 ONWARDS THE SERVER WILL IGNORE THE CALLBACK FUNCTIONS BEING PRESENT SO THAT THE LINES INSIDE IT WON'T GET EXECUTED
-// server.start(function(err){
-//     if(err){
-//         throw err
-//     }
-//     console.log('Server started');
-//     console.log('Info about the server : ',server.info);
-//     console.log('URI to access the server : ',server.info.uri);
-// })

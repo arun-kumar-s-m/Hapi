@@ -9,7 +9,7 @@ const Address = sequelize.define('Addresses',{
     type: DataTypes.INTEGER
   },
   FLAT_NO: {
-    type: DataTypes.STRING(5),
+    type: DataTypes.SMALLINT,
     allowNull: false
   },
   FLAT_NAME: {
