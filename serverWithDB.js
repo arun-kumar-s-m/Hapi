@@ -16,22 +16,25 @@ const Invoice = require('./modelsnn/invoice');
 const InvoiceLineItems = require('./modelsnn/invoicelineitems');
 const AmartFields = require('./modelsnn/amartfields');
 const AuditLogs = require('./modelsnn/auditlogs');
+const CartDetails = require('./modelsnn/cartdetails');
 
-User.hasMany(Address,{foreignKey: 'USER_ID'});
+User.hasMany(Address,{foreignKey: { name : 'USER_ID',allowNull: false}});
 // User.belongsTo(Address,{foreignKey: 'PRIMARY_ADDRESS_ID'});
-AmartConstants.hasMany(AmartFields,{foreignKey: 'MODULE_ID'});
-User.hasMany(AuditLogs,{foreignKey: 'USER_ID'});
-AmartConstants.hasMany(AuditLogs,{foreignKey: 'MODULE_ID'});
-User.hasMany(BaseItems,{foreignKey: 'CREATED_USER'});
-User.hasMany(Invoice,{foreignKey: 'BROUGHT_BY'});
-Address.hasMany(Invoice,{foreignKey: 'DELIVERY_ADDRESS'});
-Invoice.hasMany(InvoiceLineItems,{foreignKey: 'INVOICE_ID'});
-ProductDetails.hasMany(InvoiceLineItems,{foreignKey: 'PRODUCT_ID'});
-User.hasMany(ProductDetails,{foreignKey: 'CREATED_USER'});
-BaseItems.hasMany(ProductDetails,{foreignKey: 'BASE_ITEM_ID'});
-AmartConstants.hasMany(ProductDetails,{foreignKey: 'CATEGORY_ID'});
-SubCategoryDetails.hasMany(ProductDetails,{foreignKey: 'SUB_CATEGORY_ID'});
-AmartConstants.hasMany(SubCategoryDetails,{foreignKey: 'CATEGORY_ID'});
+AmartConstants.hasMany(AmartFields,{foreignKey: {name : 'MODULE_ID',allowNull: false}});
+User.hasMany(AuditLogs,{foreignKey: {name : 'USER_ID',allowNull: false}});
+AmartConstants.hasMany(AuditLogs,{foreignKey: {name : 'MODULE_ID',allowNull: false}});
+User.hasMany(BaseItems,{foreignKey: { name : 'CREATED_USER',allowNull: false}});
+User.hasMany(Invoice,{foreignKey: {name : 'BROUGHT_BY',allowNull: false}});
+Address.hasMany(Invoice,{foreignKey: {name : 'DELIVERY_ADDRESS',allowNull: false}});
+Invoice.hasMany(InvoiceLineItems,{foreignKey: {name : 'INVOICE_ID',allowNull: false}});
+ProductDetails.hasMany(InvoiceLineItems,{foreignKey: {name: 'PRODUCT_ID',allowNull: false}});
+User.hasMany(ProductDetails,{foreignKey: {name : 'CREATED_USER',allowNull: false}});
+BaseItems.hasMany(ProductDetails,{foreignKey: {name : 'BASE_ITEM_ID',allowNull: false}});
+AmartConstants.hasMany(ProductDetails,{foreignKey: {name : 'CATEGORY_ID',allowNull: false}});
+SubCategoryDetails.hasMany(ProductDetails,{foreignKey: {name : 'SUB_CATEGORY_ID',allowNull: false}});
+AmartConstants.hasMany(SubCategoryDetails,{foreignKey: {name : 'CATEGORY_ID',allowNull: false}});
+User.hasMany(CartDetails,{foreignKey : {name : 'USER_ID',allowNull :false}});
+ProductDetails.hasMany(CartDetails,{foreignKey : {name : 'PRODUCT_ID',allowNull :false}});
 
 
 
@@ -361,7 +364,7 @@ let active_user_list = {},admin_user_list = [],registered_email_ids = [],logs = 
 //       return { isValid: true };
 //     }
 // };
-
+let moduleWithIdDetails = {};
 const init = async () => {
 
     server = Hapi.server({
@@ -377,8 +380,12 @@ const init = async () => {
     // });
     console.log('in init');
     await server.start();
-    require('./modelsnn/index');
-
+    // require('./modelsnn/index');
+    let module = await AmartConstants.findAll({where : { TYPE : 1}});
+    console.log('MODULE ::::: ' ,module);
+    for(const [key,value] of  Object.entries(module)){
+        moduleWithIdDetails[value.VALUE] = value.CONSTANT_ID;
+    }
     await server.register(require('hapi-geo-locate',(err) => {
             if(err){
                 throw err
@@ -608,7 +615,7 @@ server.route(
         method : 'POST',
         path : '/addcategory',
         handler : async function(request,h){
-            let path = '/addtocart',method = request.method,output = {} , status = 500,payload = request.payload;
+            let path = '/addcategory',method = request.method,output = {} , status = 500,payload = request.payload;
             let authHeader = request.headers['authorization'];
             if(authHeader == undefined){
                 logger.warn((addRemoteIPToFileLogger(`Header value is missing in the request `,request.location.ip,path,method)));
@@ -619,27 +626,35 @@ server.route(
                 logger.warn((addRemoteIPToFileLogger('Decoded value of the token isn\'t an object ',request.location.ip,path,method)));
                 return h.response(resp).code(401);
             }
-            await User.findOne({where : { USER_ID : resp.user_id }}).then(async (result) => {
+            try{
+                const result = await User.findOne({where : { USER_ID : resp.user_id }});
                 if(result.IS_ADMIN == false){
                     output.msg = 'User isn\'t admin So unable to perform the action';
                     status = 401;
                 }
                 else{
-                    let categoryId;
-                    await AmartConstants.create({VALUE : payload['name'] , TYPE : 0 }).then((category) => {
+                    let categoryId,updateJson = {VALUE : payload['name'] , TYPE : 0 };
+                    try{
+                        const category = await AmartConstants.create(updateJson);
                         categoryId = category.CONSTANT_ID;
-                    }).catch(err => {
-                        logger.error((addRemoteIPToFileLogger(`Error occurrred while creating category in DB ${err} `,request.location.ip,path,method)));
-                    });
-                    output.msg = 'Successfully created category';
-                    output['category id'] = categoryId;
-                    status = 200;
-                    logger.info(addRemoteIPToFileLogger(`Successfully created category ID : ${categoryId}`,request.location.ip,path,method));
+                        logger.info(addRemoteIPToFileLogger(`Successfully created category ID : ${categoryId}`,request.location.ip,path,method));
+                        output.msg = 'Successfully created category';
+                        output['category id'] = categoryId;
+                        status = 200;
+                        const auditlog = await AuditLogs.create({ACTIONS : 'New Category addition',FIELDS_AFFECTED : updateJson,RECORD_ID : categoryId,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Category']});
+                        logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                    
+                    }
+                    catch(err){
+                        output.msg = 'Error occurred while creating category';
+                        logger.error(addRemoteIPToFileLogger(`Error occurred while creating Category  ${err}`,request.location.ip,path,method));
+                    }
                 }
-            }).catch(err => {
+            }
+            catch(err){
                 output.msg = 'Error occurred while creating category';
                 logger.error(addRemoteIPToFileLogger(`Error occurred while checking user is Admin: : ${err}`,request.location.ip,path,method));
-            });
+            }
             return h.response(output).code(status);
 
         },
@@ -660,7 +675,7 @@ server.route(
         method : 'POST',
         path : '/addsubcategory',
         handler : async function(request,h){
-            let path = '/addtocart',method = request.method,output = {} , status = 500,payload = request.payload;
+            let path = '/addsubcategory',method = request.method,output = {} , status = 500,payload = request.payload;
             let authHeader = request.headers['authorization'];
             if(authHeader == undefined){
                 logger.warn((addRemoteIPToFileLogger(`Header value is missing in the request `,request.location.ip,path,method)));
@@ -671,36 +686,34 @@ server.route(
                 logger.warn((addRemoteIPToFileLogger('Decoded value of the token isn\'t an object ',request.location.ip,path,method)));
                 return h.response(resp).code(401);
             }
-            await User.findOne({where : { USER_ID : resp.user_id }}).then(async (result) => {
+            try{
+                const result = await User.findOne({where : { USER_ID : resp.user_id }});
                 if(result.IS_ADMIN == false){
                     output.msg = 'User isn\'t admin So unable to perform the action';
                     status = 401;
                 }
                 else{
                     let categoryId = payload['categoryid'],name = payload['subcategory name'],subcategoryId;
-                    await AmartConstants.findOne({ where : {CONSTANT_ID : categoryId}}).then(async category => {
-                        if(category == null){
-                            output.msg = 'Invalid category Id being provided';
-                            status = 401;
-                        }
-                        else{
-                            await SubCategoryDetails.create({ SUB_CATEGORY_NAME : name, CATEGORY_ID : categoryId}).then(subcategory => {
-                                output.msg = 'Successfully created subcategory';
-                                output['sub category id'] = subcategory.SUB_CATEGORY_ID;
-                                status = 200;
-                            })
-                        }
-                    }).catch(err => {
-                        output.msg = 'Error occurred while creating subcategory';
-                        logger.error((addRemoteIPToFileLogger(`Error occurrred while creating subcategory in DB ${err} `,request.location.ip,path,method)));
-                    });
-                    
-                    logger.info(addRemoteIPToFileLogger(`Successfully created sub category ID : ${subcategoryId}`,request.location.ip,path,method));
+                    const category = await AmartConstants.findOne({ where : {CONSTANT_ID : categoryId}});
+                    if(category == null){
+                        output.msg = 'Invalid category Id being provided';
+                        status = 401;
+                    }
+                    else{
+                        let updateJson = { SUB_CATEGORY_NAME : name, CATEGORY_ID : categoryId};
+                        const subcategory = await SubCategoryDetails.create(updateJson);
+                        output.msg = 'Successfully created subcategory';
+                        status = 200;
+                        logger.info(addRemoteIPToFileLogger(`Successfully created sub category ID : ${subcategory.SUB_CATEGORY_ID}`,request.location.ip,path,method));
+                        const auditlog = await AuditLogs.create({ACTIONS : 'New Subcategory addition',FIELDS_AFFECTED : updateJson,RECORD_ID : subcategory.SUB_CATEGORY_ID,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['SubCategory']});
+                        logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                    }
                 }
-            }).catch(err => {
+            }
+            catch(err){
                 output.msg = 'Error occurred while creating subcategory';
-                logger.error(addRemoteIPToFileLogger(`Error occurred while checking user is Admin: : ${err}`,request.location.ip,path,method));
-            });
+                logger.error(addRemoteIPToFileLogger(`Error occurred while adding sub category: ${err}`,request.location.ip,path,method));
+            }
             return h.response(output).code(status);
 
         },
@@ -721,7 +734,7 @@ server.route(
     {
         method : 'POST',
         path : '/addtocart',
-        handler : function(request,h){
+        handler : async function(request,h){
             let path = '/addtocart',method = request.method;
             logger.info(addRemoteIPToFileLogger(`Inside POST addtocart request`,request.location.ip,path,method));
             let authHeader = request.headers['authorization'];
@@ -734,48 +747,35 @@ server.route(
                 logger.warn((addRemoteIPToFileLogger('Decoded value of the token isn\'t an object ',request.location.ip,path,method)));
                 return h.response(resp).code(401);
             }
-            // console.log('Response received : ',resp);
-            // console.log('Username after decoding from token : ',resp['uname']);
-            let uname = resp['uname'];
-            let itemToAddToCart = request.payload,item_name = itemToAddToCart['itemname'];
-            if(item_name == undefined || item_name == ''){
-                logger.info((addRemoteIPToFileLogger(`Item name being passed is invalid value : ${item_name}`,request.location.ip,path,method)));
-                return h.response('Kindly provide valid item name to add to Cart').code(400);
-            }
-            else if(products[item_name] == undefined){
-                logger.info((addRemoteIPToFileLogger(`There isn\'t a key in products with the mentioned item name : ${item_name}`,request.location.ip,path,method)));
-                return h.response('Mentioned item name isn\'t valid.Kindly provide valid item name').code(400);
+            let itemToAddToCart = request.payload,item_id = itemToAddToCart['itemid'],response = {},status = 500;
+
+            const product = await ProductDetails.findOne({where : {PRODUCT_ID : item_id}});
+            if(product == null){
+                logger.info((addRemoteIPToFileLogger('Improper Product ID',request.location.ip,path,method)));
+                response.msg = 'Improper Product ID';
+                status = 400;
             }
             else{
-                if(uname == undefined || uname == '' || !(uname in active_user_list)){
-                    return h.response('Kindly provide username in the query params to add the item to his cart').code(400);
-                }
-                else if(!(uname in active_user_list)){
-                    logger.info((addRemoteIPToFileLogger(`Mentioned username isn\'t valid Kindly provide valid username : ${uname}`,request.location.ip,path,method)));
-                    return h.response('Mentioned username isn\'t valid Kindly provide valid username').code(400);
+                const cart = await CartDetails.findOne({where : {USER_ID : resp.user_id, PRODUCT_ID : product.PRODUCT_ID}});
+                if(cart != null){
+                    logger.info((addRemoteIPToFileLogger('Item Already in cart for the user',request.location.ip,path,method)));
+                    response.msg = 'Item Already in cart for the user';
+                    status = 200;
                 }
                 else{
-                    let userCart = userCartDetails[uname];
-                    logger.info((addRemoteIPToFileLogger(`User cart details before adding the item : ${userCart}`,request.location.ip,path,method)));
-                    if(userCart == undefined){
-                        userCart = [];
-                    }
-                    userCart.push(item_name);
-                    userCartDetails[uname] = userCart;
-                    logger.info((addRemoteIPToFileLogger(`User cart details after adding the item to cart : ${userCart}`,request.location.ip,path,method)));
-                    let msg = `Item : ${item_name} successfully added to cart`;
-                    logger.info((addRemoteIPToFileLogger(`Successfully added the item to cart NEW ITEM NAME : ${item_name}`,request.location.ip,path,method)));
-                    logs[uname] = loggingFunction.loggingTheActionToGlobalVariable(msg,request.location,logs[uname]);
-                    return h.response(msg).code(200);
+                    const newcart = await CartDetails.create({USER_ID : resp.user_id, PRODUCT_ID : product.PRODUCT_ID});
+                    logger.info((addRemoteIPToFileLogger(`Item added to cart successfully ID : ${newcart.CART_ITEM_ID}`,request.location.ip,path,method)));
+                    response.msg = 'Item added to cart successfully';
+                    status = 200;
                 }
             }
-
+            return h.response(response).code(status);
         },
         config: {
             validate : {
                     payload : Joi.object(
                         {
-                            itemname : Joi.string().min(4).max(25).required()
+                            itemid: Joi.number().min(1).max(50).required()
                         }
                     ),
                     failAction : function (request,h , source, error) {
@@ -822,20 +822,7 @@ server.route(
         method : 'POST',
         path : '/addproduct',
         handler : async function(request,h){
-            let authHeader = request.headers['authorization'],path = '/addproduct',method = request.method,payload = JSON.parse(request.payload);
-            // console.log('JJJJJ    KKKKKK  LLLLLL  MMMMM ');
-            // console.log(typeof payload["varieties"]);
-            // let varieties = payload["varieties"];
-            // varieties.forEach(variety =>{
-            //     console.log(' &&&&&&&&&&&&&&&& ');
-            //     console.log("RAM ::: ",variety["RAM"]);
-            //     console.log("memory :::  ",variety['memory']);
-            //     console.log("original price in rupees ::: ",variety['original price in rupees']);
-            //     console.log("discounted price in rupees :::  ",variety['discounted price in rupees']);
-            //     console.log("available quantities ::: ",variety['available quantities']);
-            //     console.log(' &&&&&&&&&&&&&&&& ');
-            // })
-            // return h.response('Hi Arun').code(200);
+            let authHeader = request.headers['authorization'],path = '/addproduct',method = request.method,payload = request.payload;
             logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
             if(authHeader == undefined){
                 logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
@@ -846,113 +833,83 @@ server.route(
                 logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
-            // console.log('Response received : ',resp);
-            // console.log('Username after decoding from token : ',resp['uname']);
             let output = {},status = 500,userId;
             console.log("asdfasdf    " ,resp);
 
-            await User.findOne({where : { USER_ID : resp.user_id }}).then(async (result) => {
-                userId = result.USER_ID;
-                if(result.IS_ADMIN == false){
+            try{
+                const user = await User.findOne({where : { USER_ID : resp.user_id }});
+                if(user.IS_ADMIN == false){
                     output.msg = 'User isn\'t admin So unable to perform the action';
                     status = 401;
                 }
                 else{
-                    await BaseItems.create({ITEM_NAME : payload['name'],ITEM_INFO : payload['basic'],CREATED_USER : userId}).then((baseitems) => {
-                        // baseitems.createProductDetails({ADDITONAL_INFO : payload[]})
-                        // console.log('JJJJJ    KKKKKK  LLLLLL  MMMMM ');
-                        // console.log(typeof payload['varieties']);
-                        let varieties = payload["varieties"];
-                        varieties.forEach(async variety =>{
-                            let item_price = variety['original price in rupees'],discount_price = variety['discounted price in rupees'],available_qty = variety['available quantities'];
-                            delete variety['original price in rupees'];
-                            delete variety['discounted price in rupees'];
-                            delete variety['available quantities'];
-                            output.msg = `Product successfully got created`;
-                            status = 200;
-                            let arr = [];
-                            await ProductDetails.create({ADDITONAL_INFO : variety, AVAILABLE_QUANTITY : available_qty, ORIGINAL_PRICE : item_price, DISCOUNTED_PRICE : discount_price,CREATED_USER : result.USER_ID, BASE_ITEM_ID : baseitems.BASE_ITEM_ID,CATEGORY_ID : payload['category'], SUB_CATEGORY_ID : payload['subcategory'], IS_ACTIVE : true}).then(product => {
+                    const result = await SubCategoryDetails.findOne({where : { SUB_CATEGORY_ID : payload['subcategory'],CATEGORY_ID : payload['category'] }});
+                    if(result == null){
+                        output.msg = 'Mentioned category and subcategory id are improper';
+                        status = 400;
+                    }
+                    else{
+                        try{
+                            let updateJson = {ITEM_NAME : payload['name'],ITEM_INFO : payload['basic'],CREATED_USER : user.USER_ID},auditlog;
+                            const baseitems = await BaseItems.create(updateJson);
+                            auditlog = await AuditLogs.create({ACTIONS : 'New BaseItem addition',FIELDS_AFFECTED : updateJson,RECORD_ID : baseitems.BASE_ITEM_ID,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['BaseItems']});
+                            logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                            let varieties = payload["varieties"];
+                            varieties.forEach(async variety =>{
+                                let item_price = variety['original price in rupees'],discount_price = variety['discounted price in rupees'],available_qty = variety['available quantities'];
+                                delete variety['original price in rupees'];
+                                delete variety['discounted price in rupees'];
+                                delete variety['available quantities'];
+                                output.msg = `Product successfully got created`;
+                                status = 200;
+                                updateJson = {ADDITONAL_INFO : variety, AVAILABLE_QUANTITY : available_qty, ORIGINAL_PRICE : item_price, DISCOUNTED_PRICE : discount_price,CREATED_USER : user.USER_ID, BASE_ITEM_ID : baseitems.BASE_ITEM_ID,CATEGORY_ID : payload['category'], SUB_CATEGORY_ID : payload['subcategory'], IS_ACTIVE : true};
+                                const product = await ProductDetails.create(updateJson);
                                 logger.info(addRemoteIPToFileLogger(`Product successfully got created  ${product.PRODUCT_ID}`,request.location.ip,path,method));
-                                // output.msg = `Product successfully got created`;
-                                arr.push(product.PRODUCT_ID);
-                                // status = 200;
-                            });
-                            output['Created product id\'s'] = arr;
-
-                        })
-                    }).catch(err => {
-                        logger.error(addRemoteIPToFileLogger(`Error occurred while creating Base Items ${err}`,request.location.ip,path,method));
-                        output.msg = 'Error occurred while creating products';
-                    });
+                                auditlog = await AuditLogs.create({ACTIONS : 'New Product addition',FIELDS_AFFECTED : updateJson,RECORD_ID : product.PRODUCT_ID,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Product']});
+                                logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                            })
+                        }
+                        catch(error){
+                            logger.error(addRemoteIPToFileLogger(`Error occurred while creating Base Items ${error}`,request.location.ip,path,method));
+                            output.msg = 'Error occurred while creating products';
+                        }
+                    }
                 }
-            }).catch(err => {
+            }
+            catch(err){
                 output.msg = `Error occurred while creating products`;
-                logger.error(addRemoteIPToFileLogger(`Error occurred while executing statement : ${err}`,request.location.ip,path,method));
-            });
-
+                logger.error(addRemoteIPToFileLogger(`Error occurred while checking admin check : ${err}`,request.location.ip,path,method));
+            }
             return h.response(output).code(status);
-            // if(admin_user_list.includes(uname)){
-            //     let item_name = payload['item_name'],category = payload['category'],subcategory = payload['subcategory'];
-            //     logger.info(addRemoteIPToFileLogger(`Payload received in the request ${JSON.stringify(payload)}`,request.location.ip,path,method));
-            //     if(!(admin_user_list.includes(uname))){
-            //         logger.warn(addRemoteIPToFileLogger(`Unable to add the product since user is not a Admin ${uname}`,request.location.ip,path,method));
-            //         return h.response('Unable to add the product since user is not a Admin').code(400);
-            //     }
-            //     else if(category == undefined || category == ''){
-            //         logger.warn(addRemoteIPToFileLogger(`Category param is empty`,request.location.ip,path,method));
-            //         return h.response('Category param is empty kindly provie proper value to add the product').code(400);
-            //     }
-            //     else if(subcategory == undefined || subcategory == ''){
-            //         logger.warn(addRemoteIPToFileLogger(`Sub category param is empty`,request.location.ip,path,method));
-            //         return h.response('Sub category param is empty kindly provie proper value to add the product').code(400);
-            //     }
-            //     else if(item_name == undefined || item_name == ''){
-            //         logger.warn(addRemoteIPToFileLogger('Item name is empty kindly provide valid item name',request.location.ip,path,method));
-            //         return h.response('Item name is empty kindly provide valid item name').code(400);
-            //     }
-            //     else{
-            //         let invalidPayload = [],name = payload['name to show in ui'], price_in_Rs = payload['price_in_Rs'],discounted_price = payload['discounted_price'];
-            //         if(name == undefined || name == '' ){
-            //             invalidPayload.push('name to show in ui param is empty.kindly provide proper value');
-            //         }
-            //         if(price_in_Rs == undefined || price_in_Rs == '' ){
-            //             invalidPayload.push('Price in Rs param is empty.kindly provide proper value');
-            //         }
-            //         if(discounted_price == undefined || discounted_price == ''){
-            //             invalidPayload.push('Discounted price in Rs param is empty.kindly provide proper value');
-            //         }
-            //         if(invalidPayload.length > 0){
-            //             let errorObj = {};
-            //             errorObj['message'] = 'Certain essential keys are missing in the payload';
-            //             errorObj['keys missing'] = invalidPayload;
-            //             logger.warn(addRemoteIPToFileLogger(`Invalid keys in payload ${invalidPayload}`,request.location.ip,path,method));
-            //             return h.response(errorObj).code(400);
-            //         }
-            //         else{
-            //             let newproductObj = {};
-            //             newproductObj["name"] = name;
-            //             newproductObj["price_in_Rs"] = price_in_Rs;
-            //             newproductObj["discounted_price"] = discounted_price;
-            //             if(categoryWithSubCategories[category][subcategory] == undefined){
-            //                 categoryWithSubCategories[category][subcategory] = [];
-            //             }
-            //             categoryWithSubCategories[category][subcategory].push(item_name);
-            //             products[item_name] = newproductObj;
-            //             logger.info(addRemoteIPToFileLogger('Item has been successfully added',request.location.ip,path,method));
-            //             return h.response('Item has been successfully added').code(200);
-            //         }
-            //     }
-            // }
-            // else{
-            //     return h.response('User isn\'t admin So unable to perform the action').code(401);
-            // }
+        },
+        config : {
+            validate : {
+                payload : Joi.object(
+                    {
+                        name : Joi.string().min(3).max(20).required(),
+                        basic : Joi.object().pattern(Joi.string().min(4).max(25).required(),Joi.object().pattern(Joi.string().min(3).max(25),Joi.string().min(4).max(100))).required(),
+                        varieties : Joi.array().items(Joi.object({
+                            'original price in rupees' : Joi.number().min(1).max(100000).required(),
+                            'discounted price in rupees' : Joi.number().min(1).max(100000).required(),
+                            'available quantities' : Joi.number().min(1).max(100000).required()
+                        }).unknown(true)).required(),
+                        category : Joi.number().min(1).max(50).required(),
+                        subcategory :  Joi.number().min(1).max(500).required()
+                    }
+                ),
+                failAction : function (request,h , source, error) {
+                    let obj = [];
+                    source.details.forEach(errorMsg => obj.push(errorMsg.message));
+                    return h.response({ code: 400, message: obj}).takeover().code(400);
+                }
+            }
         }
     },
     {
         method : 'DELETE',
         path : '/products/delete',
-        handler : function(request,h){
-            let authHeader = request.headers['authorization'],path = '/addproduct',method = request.method;
+        handler : async function(request,h){
+            let authHeader = request.headers['authorization'],path = '/products/delete',method = request.method,item_id = request.query['id'];
             logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
             if(authHeader == undefined){
                 logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
@@ -963,55 +920,35 @@ server.route(
                 logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
-            // console.log('Response received : ',resp);
-            // console.log('Username after decoding from token : ',resp['uname']);
-            let uname = resp['uname'];
-            if(admin_user_list.includes(uname)){
-                let payload = JSON.parse(request.payload),item_name = payload['item_name'],category = payload['category'],subcategory = payload['subcategory'];
-            if(uname == undefined || uname == ''){
-                return h.response('username param in payload is mandatory Kindly provide it').code(400)
+
+            const user = await User.findOne({where : { USER_ID : resp.user_id}});
+            let status = 500,response = {};
+            if(user == null){
+                response.msg = 'Improper user';
+                status = 400;
             }
-            else if(!(admin_user_list.includes(uname))){
-                logger.warn(addRemoteIPToFileLogger(`Unable to add the product since user is not a Admin`,request.location.ip,path,method));
-                return h.response('Unable to add the product since user is not a Admin').code(401);
-            }
-            else if(category == undefined || category == ''){
-                logger.error(addRemoteIPToFileLogger(`Category param is empty kindly `,request.location.ip,path,method));
-                return h.response('Category param is empty kindly provie proper value to add the product').code(400);
-            }
-            else if(subcategory == undefined || subcategory == ''){
-                logger.error(addRemoteIPToFileLogger(`Sub category param is empty kindly`,request.location.ip,path,method));
-                return h.response('Sub category param is empty kindly provie proper value to add the product').code(400);
-            }
-            else if(item_name == undefined || item_name == ''){
-                logger.error(addRemoteIPToFileLogger(`Item name is empty `,request.location.ip,path,method));
-                return h.response('Item name is empty kindly provide valid item name').code(400);
+            else if(user.IS_ADMIN == false){
+                response.msg = 'User not a Admin';
+                status = 401;
             }
             else{
-                if(categoryWithSubCategories[category] == undefined){
-                    logger.error(addRemoteIPToFileLogger(`Improper category name provided ${category} `,request.location.ip,path,method));
-                    return h.response('Improper category name provided').code(400);
-                }
-                else if(categoryWithSubCategories[category][subcategory] == undefined){
-                    logger.error(addRemoteIPToFileLogger(`Improper subcategory name provided ${subcategory} `,request.location.ip,path,method));
-                    return h.response('Improper sub category name provided').code(400);
+                const productPresent = await ProductDetails.findOne({where :{PRODUCT_ID :item_id}});
+                if(productPresent == null){
+                    response.msg = 'Improper product id being passed';
+                    status = 400;
                 }
                 else{
-                    let productArray = categoryWithSubCategories[category][subcategory];
-                    let indexOfProductToBeRemoved = productArray.indexOf(item_name);
-                    if(indexOfProductToBeRemoved == -1){
-                        logger.error(addRemoteIPToFileLogger(`Invalid item name being passed in the request ${item_name} `,request.location.ip,path,method));
-                        return h.response('Invalid item name being passed in the request').code(400);
-                    }
-                    let finalArray = productArray.splice(0,indexOfProductToBeRemoved).concat(productArray.splice(1));
-                    categoryWithSubCategories[category][subcategory] = finalArray;
-                    delete products[item_name];
-                    logger.error(addRemoteIPToFileLogger(`Product has been removed successfully `,request.location.ip,path,method));
-                    return h.response('Product has been removed successfully').code(200);
+                    let updateJson = {IS_ACTIVE : false};
+                    const product = await ProductDetails.update(updateJson, {where : {PRODUCT_ID : item_id}});
+                    logger.info(addRemoteIPToFileLogger(`Product ID : ${item_id} has been made inactive successfully `,request.location.ip,path,method));
+                    let auditlog =  await AuditLogs.create({ACTIONS : 'Made product inactive',FIELDS_AFFECTED : updateJson,RECORD_ID : item_id,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Product']});
+                    logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                    response.msg = 'Product has been removed successfully';
+                    status = 200;
                 }
             }
+            return h.response(response).code(status);
         }
-    }
     },
     {
         method : ['PUT','POST'],
@@ -1068,7 +1005,7 @@ server.route(
     {
         method : 'POST',
         path : '/getcart/buy',
-        handler : function(request,h){
+        handler : async function(request,h){
             let authHeader = request.headers['authorization'],path = '/getcart/buy',method = request.method;
             logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
             if(authHeader == undefined){
@@ -1080,79 +1017,100 @@ server.route(
                 logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
-            // console.log('Response received : ',resp);
-            // console.log('Username after decoding from token : ',resp['uname']);
-            let uname = resp['uname'];
-            let payload = request.payload,itemsAndQuantities = payload['items'];
-            let invoice = {};
-            if(uname == undefined || uname == '' || !(uname in active_user_list)){
-                return h.response('kindly provide valid username in request payload').code(400);
+            let payload = request.payload,itemsAndQuantities = payload['items'],address_fromreq = payload["delivery address id"],source = payload['payment source'], response = {},status = 500;
+
+            const address = await Address.findOne({where : {USER_ID : resp.user_id,ADDRESS_ID : address_fromreq }});
+            if(address == null){ 
+                logger.error(addRemoteIPToFileLogger('Improper Delivery Address provided',request.location.ip,path,method));
+                response.msg = 'Improper Delivery Address provided';
+                status = 400; 
             }
-            let total_price_of_ordered_items =  0,unplaced_items = [];
-            for(const [key,value] of Object.entries(itemsAndQuantities)){
-                if(!(key in products)){
-                    logger.warn(addRemoteIPToFileLogger(`Item name being passed is invalid :::: ${key}`,request.location.ip,path,method));
-                    return h.response(`Invalid item name : ${key} being passed`).code(400);
+            else{
+                if(Object.keys(itemsAndQuantities).length <= 0 ){
+                    logger.error(addRemoteIPToFileLogger(`Provided length of items is less than equal to zero`,request.location.ip,path,method));
+                    response.msg = 'Provided length of items is less than equal to zero';
+                    status = 400; 
                 }
-                if(products[key]['Out_of_stock'] == true){
-                    unplaced_items.push(key);
+                else{
+                    let invalidProducts = [],totalPrice = 0,prodWithPrice = {};
+                    for(const [key,value] of Object.entries(itemsAndQuantities)){
+                        let product_id = Number(key);
+                        const product = await ProductDetails.findOne({where : {PRODUCT_ID : product_id}});
+                        if(product == null){
+                            invalidProducts.push(key);
+                        }
+                        else{
+                            let price = product.DISCOUNTED_PRICE,available_qty = product.AVAILABLE_QUANTITY;
+                            if(available_qty <= 0){
+                                invalidProducts.push(key);
+                            }
+                            else{
+                                if(available_qty < value){
+                                    value = available_qty;
+                                    itemsAndQuantities[key] = value;
+                                }
+                                totalPrice += (price * value);
+                                let obj = {};
+                                obj.availQty = available_qty;
+                                obj.price = price;
+                                prodWithPrice[key] = obj;
+                            }
+                        }
+                    }
+                    response['Invalid Product ID\'s '] = invalidProducts;
+                    let numberOfItemsBrought = Object.keys(prodWithPrice).length;
+                    let updateJson = {TOTAL_ITEMS_BROUGHT : numberOfItemsBrought,TOTAL_AMOUNT : totalPrice,PAYMENT_SOURCE : source,BROUGHT_BY : resp.user_id,DELIVERY_ADDRESS : address.ADDRESS_ID,STATUS : 0},auditlog;
+                    const invoice = await Invoice.create(updateJson);
+                    logger.info(addRemoteIPToFileLogger(`Invoice created successfully ID : ${invoice.INVOICE_ID}`,request.location.ip,path,method));
+                    auditlog = await AuditLogs.create({ACTIONS : 'New Invoice addition',FIELDS_AFFECTED : updateJson,RECORD_ID : invoice.INVOICE_ID,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Invoices']});
+                    logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                    try{
+                        for(const [key,value] of Object.entries(prodWithPrice)){
+                            let id = Number(key);
+                            updateJson = {QUANTITY : itemsAndQuantities[key], ITEM_PRICE :value.price ,TOTAL_PRICE : itemsAndQuantities[key] * value.price, INVOICE_ID : invoice.INVOICE_ID,PRODUCT_ID : id};
+                            let invoice_line_items =  await InvoiceLineItems.create( updateJson);
+                            logger.info(addRemoteIPToFileLogger(`Invoice line items has been created successfully ID : ${invoice_line_items.INVOICE_LINE_ITEM_ID}`,request.location.ip,path,method));
+                            updateJson2 = {AVAILABLE_QUANTITY : value.availQty - itemsAndQuantities[key]};
+                            let prodUpdate = await ProductDetails.update(
+                                updateJson2,
+                                {
+                                    where : {
+                                        PRODUCT_ID : id
+                                    }
+                                }
+                            );
+                            logger.info(addRemoteIPToFileLogger(`Available quantity has been reduced successfully for product id : ${id} `,request.location.ip,path,method));
+                            auditlog =  await AuditLogs.create({ACTIONS : 'New Invoice Lineitem addition',FIELDS_AFFECTED : updateJson,RECORD_ID : invoice_line_items.INVOICE_LINE_ITEM_ID,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['InvoiceLineItems']});
+                            logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                            auditlog =  await AuditLogs.create({ACTIONS : 'Product Available quantity reduction',FIELDS_AFFECTED : updateJson2,RECORD_ID : id,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Product']});
+                            logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                        }
+                        response.msg = 'Invoice has been created successfully';
+                        status = 200;
+                    }
+                    catch(err){
+                        logger.error(addRemoteIPToFileLogger(`Error occurred: ${err}`,request.location.ip,path,method));
+                        response.msg = 'Error occurred while creating products';
+                    }
+
                 }
-                let quantity = Number(value);
-                console.log('QUANTITY : ',quantity);
-                if(isNaN(quantity)){
-                    logger.warn(addRemoteIPToFileLogger(`Invalid quantity : ${value} being provided for item : ${key}`,request.location.ip,path,method));
-                    return h.response(`Invalid quantity : ${value} being provided for item : ${key}`).code(400);
-                }
-                let obj = {};
-                obj['item_name'] = key;
-                obj['quantity'] = quantity;
-                obj['unit price'] = products[key].discounted_price;
-                obj['total price'] = quantity * products[key].discounted_price;
-                total_price_of_ordered_items = total_price_of_ordered_items + obj['total price'];
-                invoice[key] = obj;
             }
-            invoice['total_price_in_rupees'] = total_price_of_ordered_items;
-            let userAlreadyOrderedItems = userOrderedItems[uname];
-            // if(JSON.stringify() userAlreadyOrderedItems == undefined){
-            //     logVal = '';
-            // }
-            logger.info(addRemoteIPToFileLogger(`User ordered items before adding current items : ${JSON.stringify(userAlreadyOrderedItems)}`,request.location.ip,path,method));
-            if(userAlreadyOrderedItems == undefined){
-                userAlreadyOrderedItems = [];
-            }
-            userAlreadyOrderedItems.push(invoice);
-            userOrderedItems[uname] = userAlreadyOrderedItems;
-            logger.info(addRemoteIPToFileLogger(`User ordered items after adding current items : ${JSON.stringify(userAlreadyOrderedItems)}`,request.location.ip,path,method));
-            logger.info(addRemoteIPToFileLogger(`Items has been successfully placed`,request.location.ip,path,method));
-            // let resObj["unplaced items"] = {};
-            console.log(userOrderedItems);
-            logs[uname] = loggingFunction.loggingTheActionToGlobalVariable(`User placed an order`,request.location,logs[uname]);
-            let resObj = {};
-            resObj["message"] = 'Items has been placed successfully';
-            if(unplaced_items.length > 0){
-                // let resObj['unplaced_items'] = new Object();
-                resObj['unplaced_items'] = unplaced_items;
-                // resObj.unplaced_items["item list"] = unplaced_items;
-                // resObj.unplaced_items["reason"] = 'Above items are Out of Stock So unable to place order for them';
-            }
-            return h.response(resObj).code(200);
+
+            return h.response(response).code(200);
         },
         config : {
             validate : {
                 payload : Joi.object(
                     {
-                        items : Joi.object().pattern(Joi.string().min(4).max(25).required(), Joi.number().min(1).max(4).required())
-                        // Joi.string().min(4).max(25).required()
+                        items : Joi.object().pattern(Joi.string().min(1).max(2), Joi.number().min(1).max(4)).required(),
+                        'payment source' : Joi.number().min(0).max(3).required(),
+                        'delivery address id' :  Joi.number().min(1).max(50).required()
                     }
                 ),
                 failAction : function (request,h , source, error) {
-
-                    console.log('VAL OF SOURCE:',source);
-                    console.log('------------------------------');
                     let obj = [];
                     source.details.forEach(errorMsg => obj.push(errorMsg.message));
                     return h.response({ code: 400, message: obj}).takeover().code(400);
-                    // return h.response({ code: 400, message: source.details[0].message}).takeover().code(400);
                     
                 }
             }
@@ -1161,7 +1119,7 @@ server.route(
     {
         method : 'POST',
         path : '/buy',
-        handler : function(request,h){
+        handler : async function(request,h){
             let authHeader = request.headers['authorization'],path = '/buy',method = request.method;
             logger.info(addRemoteIPToFileLogger(`Inside /buy request`,request.location.ip,path,method));
             if(authHeader == undefined){
@@ -1173,48 +1131,77 @@ server.route(
                 logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
-            // console.log('Response received : ',resp);
-            // console.log('Username after decoding from token : ',resp['uname']);
-            let uname = resp['uname'];
-            let payload = request.payload,item_name = payload['itemname'],qty = payload['quantity'];
-            let invoice = {};
-            if(uname == undefined || uname == '' || !(uname in active_user_list)){
-                return h.response('kindly provide valid username in request payload').code(400);
+            let userid = resp.user_id,payload = request.payload,product_id = payload['product id'],quantity = payload['quantity'],source = payload['payment source'],address_fromreq = payload['delivery address id'],response = {},status = 500;
+
+
+            const product = await ProductDetails.findOne({where : {PRODUCT_ID : product_id,IS_ACTIVE : true}});
+            if(product == null){
+                logger.error(addRemoteIPToFileLogger(`Mentioned product id is improper`,request.location.ip,path,method));
+                response.msg = 'Mentioned product id is improper';
+                status = 400; 
             }
-            if(!(item_name in products)){
-                logger.warn(addRemoteIPToFileLogger(`Item name being passed is invalid :::: ${item_name}`,request.location.ip,path,method));
-                return h.response('Item name is invalid.Kindly mention it properly').code(400);
+            else if(product.AVAILABLE_QUANTITY == 0){
+                logger.warn(addRemoteIPToFileLogger(`Mentioned product id is currently Out Of Stock`,request.location.ip,path,method));
+                response.msg = 'Mentioned product id is currently Out Of Stock';
+                status = 200; 
             }
-            if(products[item_name]['Out_of_stock'] == true){
-                logger.warn(addRemoteIPToFileLogger(`Item name being passed is currently Out of Stock :::: ${item_name}`,request.location.ip,path,method));
-                return h.response(`Item is Out of Stock now So unable to place order for them`).code(200);
+            else{
+                if(product.AVAILABLE_QUANTITY < quantity){
+                    quantity = product.AVAILABLE_QUANTITY;
+                }
+                const address = await Address.findOne({where : {USER_ID : userid,ADDRESS_ID : address_fromreq }});
+                if(address == null){ 
+                    logger.error(addRemoteIPToFileLogger(`Improper Delivery Address provided`,request.location.ip,path,method));
+                    response.msg = 'Improper Delivery Address provided';
+                    status = 400; 
+                }
+                else{
+                    let updateJson = {TOTAL_ITEMS_BROUGHT : 1,TOTAL_AMOUNT : quantity * product.DISCOUNTED_PRICE,PAYMENT_SOURCE : source,BROUGHT_BY : userid,DELIVERY_ADDRESS : address.ADDRESS_ID,STATUS : 0},auditlog;
+                    const invoice = await Invoice.create(updateJson);
+                    logger.info(addRemoteIPToFileLogger(`Invoice created successfully ID : ${invoice.INVOICE_ID}`,request.location.ip,path,method));
+                    auditlog = await AuditLogs.create({ACTIONS : 'New Invoice addition',FIELDS_AFFECTED : updateJson,RECORD_ID : invoice.INVOICE_ID,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Invoices']});
+                    logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                    let invoice_line_items;
+                    try{
+                        updateJson = {QUANTITY : quantity, ITEM_PRICE :product.DISCOUNTED_PRICE ,TOTAL_PRICE : invoice.TOTAL_AMOUNT, INVOICE_ID : invoice.INVOICE_ID,PRODUCT_ID : product.PRODUCT_ID};
+                        invoice_line_items =  await InvoiceLineItems.create(updateJson);
+                        logger.info(addRemoteIPToFileLogger(`Invoice line items has been created successfully ID : ${invoice_line_items.INVOICE_LINE_ITEM_ID}`,request.location.ip,path,method));
+                        let updateJson2 = {AVAILABLE_QUANTITY : product.AVAILABLE_QUANTITY - quantity };
+                        let prodUpdate = await ProductDetails.update(
+                            updateJson2,
+                            {
+                                where : {
+                                    PRODUCT_ID : product.PRODUCT_ID
+                                }
+                            }
+                        );
+                        logger.info(addRemoteIPToFileLogger(`Available quantity has been reduced successfully for product id : ${prodUpdate.PRODUCT_ID} `,request.location.ip,path,method));
+                        auditlog =  await AuditLogs.create({ACTIONS : 'New Invoice Lineitem addition',FIELDS_AFFECTED : updateJson,RECORD_ID : invoice_line_items.INVOICE_LINE_ITEM_ID,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['InvoiceLineItems']});
+                        logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                        auditlog =  await AuditLogs.create({ACTIONS : 'Product Available quantity reduction',FIELDS_AFFECTED : updateJson2,RECORD_ID : product.PRODUCT_ID,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Product']});
+                        logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                        response.msg = 'Invoice has been created successfully';
+                        status = 200;
+                    }
+                    catch(err){
+                        logger.error(addRemoteIPToFileLogger(`Error occurred: ${err}`,request.location.ip,path,method));
+                    }
+                    
+                }
             }
-            let previousOrderedItems = userOrderedItems[uname];
-            logger.info(addRemoteIPToFileLogger(`User ordered items before adding current items : ${JSON.stringify(previousOrderedItems)}`,request.location.ip,path,method));
-            if(previousOrderedItems == undefined){
-                previousOrderedItems = [];
-            }
-            invoice['item_name'] = item_name;
-            invoice['quantity'] = qty;
-            invoice['unit price'] = products[item_name].discounted_price;
-            invoice['total price'] = qty * products[item_name].discounted_price;
-            invoice['total_price_in_rupees'] = invoice['total price'];
-            previousOrderedItems.push(invoice);
-            userOrderedItems[uname] = previousOrderedItems;
-            logger.info(addRemoteIPToFileLogger(`User ordered items before adding current items : ${JSON.stringify(previousOrderedItems)}`,request.location.ip,path,method));
-            logger.info(addRemoteIPToFileLogger(`Item :  ${item_name} has been placed successfully`,request.location.ip,path,method));
-            return h.response(`${item_name} has been placed successfully`).code(200);
+            return h.response(response).code(status);
         },
         config : {
             validate : {
                 payload : Joi.object(
                     {
-                        itemname : Joi.string().min(4).max(25).required(),
-                        quantity : Joi.number().min(1).max(4).required()
+                        'product id' :  Joi.number().min(1).max(500).required(),
+                        quantity : Joi.number().min(1).max(4).required(),
+                        'payment source' : Joi.number().min(0).max(3).required(),
+                        'delivery address id' :  Joi.number().min(1).max(50).required()
                     }
                 ),
                 failAction : function (request,h , source, error) {
-
                     let obj = [];
                     source.details.forEach(errorMsg => obj.push(errorMsg.message));
                     return h.response({ code: 400, message: obj}).takeover().code(400);
@@ -1508,78 +1495,16 @@ server.route(
     {
         method : ['POST','PUT'],
         path : '/user/signup',
-        handler : function(request,h){
+        handler : async function(request,h){
             console.log('Path details : ',this.path);
             try{
                 let query_params = request.payload,path = '/user/signup', method = request.method;
                 let uname = query_params['username'],pwd = query_params['password'],email = query_params['email'];
-                let headers = request.headers; 
-                logger.debug(addRemoteIPToFileLogger(typeof headers,request.location,path,method));
-                logger.debug(addRemoteIPToFileLogger(JSON.stringify(headers),request.location,path,method));
-                // console.log(typeof query_params);
-                console.log('IP Address :::: ',request.location.ip);
-                logger.info(addRemoteIPToFileLogger('Inside POST sign up request with ',request.location.ip,path,method));
-                logger.info(addRemoteIPToFileLogger(`Received values from request user name : ${uname} password : ${pwd} email : ${email}`,request.location.ip,path,method));
-                if((uname == undefined || uname == "" ) || (pwd == undefined || pwd == "" ) || (email == undefined || email == "" )){
-                    return h.response('Username, Password and Email id is a mandatory field kindly provide them').code(400);
-                }
-                if(registered_email_ids.includes(email)){
-                    return h.response('Email ID provided is already being registered').code(400);
-                }
-                if(uname in active_user_list){
-                    return h.response('User Name isn\'t available Kindly provide some other names').code(400);
-                }
-                console.log('Before Obj insertion----------');
-                let obj = {};
-                obj.uname = uname;
-                obj.pwd = pwd;
-                obj.fname = query_params['first_name'];
-                obj.lname = query_params['last_name'];
-                obj.email = email;
-                obj.phone = query_params['phone'];
-    
-                let userObj = new user(obj);
-                active_user_list[uname] = userObj;
-                // console.log('Active user list : ',active_user_list);
-                registered_email_ids.push(query_params['email']);
-                console.log('Before DB insertion----------');
-                let result = User.create({ FIRST_NAME : query_params['first_name'] , LAST_NAME : query_params['last_name'] , USERNAME : uname , PASSWORD : pwd, EMAIL : email, PHONE : query_params['phone'] });
-                result.then((result) => {
-                    console.log('User being stored in POSTGRESQL successfully customer : ',result);
-                }).catch(err => {
-                    console.log('Error occurred while executing statement : ',err);
-                });
-                // query_params.hostname = 'localhost'
-                let ip_address = request.location;
-                logger.debug(addRemoteIPToFileLogger(`User ip address : ${ip_address}`,request.location.ip,path,method));
-                logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('Successfully created account for the user',request.location.ip,logs[uname]);
-
-                // let token = Jwt.token.generate(
-                //     {
-                //         aud: 'urn:audience:test',
-                //         iss: 'urn:issuer:test',
-                //         user: uname,
-                //         pwd : query_params['password'],
-                //         email : query_params['email'],
-                //         group: 'hapi_community'
-                //     },
-                //     {
-                //         key: 'topSecretKey_ToBePutInFileInProductionEnv',
-                //         algorithm: 'HS512'
-                //     },
-                //     {
-                //         ttlSec: 14400 // 4 hours
-                //     });
-                // let token = jwt.sign({ 
-                //     user : uname,
-                //     pwd : pwd,
-                //     email : email
-                // }, 'SECRET_KEY_ARUN');
-                // console.log('Newly created token value is ',token);
-                // let resp =  {};
-                // // resp["token"] = token;
-                // resp["msg = 'Successfully created account';
+                let updateJson = {FIRST_NAME : query_params['first_name'] , LAST_NAME : query_params['last_name'] , USERNAME : uname , PASSWORD : pwd, EMAIL : email, PHONE : query_params['phone']};
+                let result = await User.create(updateJson);
                 logger.info(addRemoteIPToFileLogger(`Successfully created account with user name as : ${uname}`,request.location.ip,path,method));
+                let auditlog = await AuditLogs.create({ACTIONS : 'New User Creation',FIELDS_AFFECTED : updateJson,RECORD_ID : result.USER_ID,USER_ID : result.USER_ID,MODULE_ID : moduleWithIdDetails['User']});
+                logger.info(addRemoteIPToFileLogger(`Entry added to AuditLog AuditLogID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
                 return h.response('Successfully created account').code(200);
             }
             catch(err){

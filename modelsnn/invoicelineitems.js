@@ -18,11 +18,11 @@ const InvoiceLineItems = sequelize.define('InvoiceLineItems',{
   // },
   QUANTITY: {
     type: DataTypes.SMALLINT,
-    allowNull: false
+    allowNull: false,
   },
   ITEM_PRICE: {
     type: DataTypes.REAL,
-    allowNull: false
+    allowNull: false,
   },
   TOTAL_PRICE: {
     type: DataTypes.REAL,

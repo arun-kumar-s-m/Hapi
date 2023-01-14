@@ -33,6 +33,10 @@ const AuditLogs = sequelize.define('AuditLogs',{
     type : DataTypes.JSON,
     allowNull : false
   },
+  RECORD_ID : {
+    type : DataTypes.INTEGER,
+    allowNull : false
+  }
 },{
   timestamps: true,
   createdAt: 'AUDITED_TIME',
