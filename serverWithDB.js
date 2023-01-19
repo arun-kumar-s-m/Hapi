@@ -1,10 +1,103 @@
 const Hapi = require('hapi'),user = require('./User'),loggingFunction = require('./helperfunctions.js'),jwt = require('jsonwebtoken'),winston = require('winston');
 const Joi = require('joi');
+const { Queue, Worker} = require('bullmq');
+const nodemailer = require('nodemailer');
 // const loggerFile = require('./logger.js')
 const logger = require('./logger.js');
 const {Sequelize , DataTypes} = require('sequelize');
 const sequelize = require('./sequelize-init');
 const invoice = require('./modelsnn/invoice');
+
+// let transporter = nodemailer.createTransport("SMTP",{
+//     service : 'outlook',
+//     auth :{
+//         user : 'ar98mu@outlook.com',
+//         pass : 'arun90957'
+//     }
+// });
+
+const xoauth2 = require('xoauth2');
+
+
+// let transporter = nodemailer.createTransport({
+//   service: 'Gmail', 
+//   auth: {
+//     xoauth2: xoauth2.createXOAuth2Generator({
+//         type: "login", 
+//         user: 'arra98mu11@gmail.com',
+//         pass : 'arun$123'
+//     })
+// }
+// });
+
+var transporter = nodemailer.createTransport({      
+    host: "smtp.gmail.com",
+    auth: {
+      type: "OAuth2",
+      user: "arra98mu11@gmail.com",
+      clientId: "475941257704-eh3ui26428d1pifudsj9p429v0fne1jb.apps.googleusercontent.com",
+      clientSecret: "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",
+      refreshToken: "1//0g83Af94vfoIICgYIARAAGBASNgF-L9Ir2RGsZ6or1yRwLeiEbV_ADC1WJJEbLmS17CZtYMC8P24ZLvFQPKT6x8eireq_mxl_ZA"                              
+    }
+  });
+
+let signupMailOptions = {
+    from : 'arra98mu11@gmail.com',
+    to : 'arun98mu@gmail.com',
+    subject : 'New account created',
+    text : `Welcome to Amart,
+            New Account has been created for you.Kindly access our Amart to explore new things.`
+};
+
+transporter.sendMail(signupMailOptions,function(error,info){
+    if(error){
+        console.log(`Error occurred while sending mail ${JSON.stringify(error)}`);
+        throw error;
+    }
+    else{
+        console.log(`Account successfully created ${JSON.stringify(info)}`);
+    }
+})
+
+
+const myQueue = new Queue('Queue_1');
+myQueue.add('Job_1',{name : 'arun'});
+myQueue.add('Job_2',{name : 'kumar'});
+
+const worker = new Worker('Queue_1', async job => {
+    console.log('Worker executing job');
+    console.log(job.data);
+    let data = job.data;
+    console.log('Hi ',data.name);
+    console.log('Worker completed executing job');
+  });
+
+myQueue.add('Job_3',{name : 'arun_2'});
+
+const newUserQueue = new Queue('NewUser');
+const newUserWorker = new Worker('NewUser', async job => {
+    const data = job.data;
+    logger.info({message : `Worker started processing JOB :: ${job.name}`});
+    // let obj = mailOptions.clone();
+    // obj.to = data.email;
+    transporter.sendMail();
+    // throw new Error('Throwing custom error');
+  } );
+
+  newUserWorker.on('progress',(Job) => {
+    logger.info({message : `JOB : ${Job.name} EXECUTION STARTED JOB Details : ${JSON.stringify(Job)}`});
+    logger.info({message :'SENDING MAIL TO USER ::: '+job.data.email});
+  })
+
+  newUserWorker.on('completed',(Job) => {
+    logger.info({message : `JOB : ${Job.name} has been executed successfully JOB Details : ${JSON.stringify(Job)}`});
+  })
+
+  newUserWorker.on('failed',(Job,error) => {
+    logger.info({message : `JOB : ${Job.name} EXECUTION FAILED Details :: ${JSON.stringify(Job)} `});
+    logger.error({message : `Failed Reason : ${Job.failedReason} STACK TRACE ::: ${Job.stacktrace}`});
+    logger.error({message : `ERROR :: ${error}`});
+  })
 
 const User = require('./modelsnn/users');
 const Address = require('./modelsnn/address');
@@ -17,6 +110,9 @@ const InvoiceLineItems = require('./modelsnn/invoicelineitems');
 const AmartFields = require('./modelsnn/amartfields');
 const AuditLogs = require('./modelsnn/auditlogs');
 const CartDetails = require('./modelsnn/cartdetails');
+const { Logger } = require('winston');
+const { limit } = require('@hapi/joi/lib/common');
+const { required } = require('joi');
 
 User.hasMany(Address,{foreignKey: { name : 'USER_ID',allowNull: false}});
 // User.belongsTo(Address,{foreignKey: 'PRIMARY_ADDRESS_ID'});
@@ -176,7 +272,7 @@ function addRemoteIPToFileLogger(message , remote_ip,path,method){
 // logger.debug(addRemoteIPToFileLogger('Debug','192.192.192.75','/survey','DELETE'));
 // logger.error(new Error('Testing the custom error thrown'));
 
-
+// myQueue.add('Job_4',{name : 'arun_4'});
 const categoryWithSubCategories = {};
 categoryWithSubCategories['electronics'] = {};
 categoryWithSubCategories['electronics']['pendrives'] = ['hp_64_gb','sandish_64_gb','transcend_64_gb'];
@@ -529,7 +625,7 @@ server.route(
     {
         method : 'GET',
         path : '/getAllProducts',
-        handler : function(request,h){
+        handler : async function(request,h){
             let headers = request.headers,method = 'GET',path = '/getAllProducts';
             let authHeader = headers['authorization'];
             if(authHeader == undefined){
@@ -545,66 +641,71 @@ server.route(
                 else{
                     logger.info(addRemoteIPToFileLogger(`Token successfully validated and response username : ${resp.username} password : ${resp.password} user ID : ${resp.user_id}`,request.location.ip,path,method));
                 }
-            let query_params = request.query,category = query_params['category'],obj = {};
-            if(category == undefined){
-                obj.products = products;
-                obj.message = 'Kindly use Category as query params to filter the results';
-                return h.response(obj).code(200);
-            }
-            else if( category == '' || categoryWithSubCategories[category] == undefined){
-                obj.products = products;
-                obj.message = 'Mentioned value for Category query param is invalid.Kindly use proper value for Category query params';
-                return h.response(obj).code(200);
-            }
-            else{
-                let subcategory = query_params['subcategory'];
-                if(subcategory == undefined || subcategory == '' || categoryWithSubCategories[category][subcategory] == undefined){
-                        // let productArray = [];
-                        obj.product = {};
-                        // console.log('TYPE !! : ',typeof products[category]);
-                        // for(const [key,value] of Object.entries(products[category])){
-                        //     console.log('Value for json is ',value);
-                        //     console.log('TYPE : ',typeof value);
-                        //     for(const [key2,value2] of Object.entries(value)){
-                        //         // productArray.push(value2);
-                        //         obj.product[key2] = value2;
-                        //     }
-                        // }
-                        for(const [key,value] of Object.entries(categoryWithSubCategories[category])){
-                            value.forEach(prod => {
-                                obj.product[prod] = products[prod];
-                            });
-                        }
-                        // obj.product = productArray;
-                        if(subcategory == undefined){
-                            obj.message = 'Kindly use Sub Category as query param to filter the results further';
-                        }
-                        else{
-                            obj.message = 'Mentioned value for Sub Category query param is invalid.Kindly provide proper value for Sub Category query param';
-                        }
-                        return h.response(obj).code(200);
-                    
+            let query_params = request.query,category = query_params['category'],sub_category = query_params['sub category'],obj = {},updateJson = {},from = query_params['offset'], fromRange = ( from != null && !isNaN(Number(from)))  ? from : 0;
+            try{
+            if(sub_category != undefined && category != undefined){
+                if(isNaN(category)){
+                    return h.response({msg : 'Improper value provided for category param'}).code(200);
                 }
-                else{
-                    // let productArray = [];
-                    // for(const [key2,value2] of Object.entries(products[category][subcategory])){
-                    //     obj[key2] = value2;
-                    //     // productArray.push(value2);
-                    // }
-                    // obj.product = productArray;
-                    obj.product = {};
-                    categoryWithSubCategories[category][subcategory].forEach(prod => {
-                        obj.product[prod] = products[prod];
-                    });
-                    return h.response(obj).code(200);
+                else if(isNaN(sub_category)){
+                    return h.response({msg : 'Improper value provided for sub category param'}).code(200);
                 }
+                updateJson = { where : { SUB_CATEGORY_ID : sub_category , CATEGORY_ID : category},offset : fromRange,limit : 10 };
+            }
+            else if(sub_category != undefined){
+                if(isNaN(sub_category)){
+                    return h.response({msg : 'Improper value provided for sub category param'}).code(200);
+                }
+                updateJson = { where : { SUB_CATEGORY_ID : sub_category},offset : fromRange,limit : 10 };
+            }
+            else if(category != undefined){
+                if(isNaN(category)){
+                    return h.response({msg : 'Improper value provided for category param'}).code(200);
+                }
+                updateJson = { where : { CATEGORY_ID : category},offset : fromRange,limit : 10 };
+            }
+            updateJson.order = [['CREATED_TIME','DESC']];
+            // updateJson.include = [{
+            //     model : BaseItems,
+            //     required : true
+            // }];
+            const products = await ProductDetails.findAll(updateJson);
+            // const products = await BaseItems.findAll({
+            //     include : [{
+            //         model : ProductDetails,
+            //         where : { SUB_CATEGORY_ID : sub_category , CATEGORY_ID : category},
+            //         order : [['CREATED_TIME','DESC']],
+            //         required : true,
+            //     }]
+            // });
+            // console.log(products);
+            // for(let [key,value] of Object.entries(products)){
+            //     console.log('KEY :: ',key,'VALUE :: ',value);
+            // }
+            // console.log('Total length',Object.keys(products).length);
+            if(Object.keys(products).length == 0){
+                products.message = 'No results found.Reason could be improper values provided in the input';
             }
 
-            
-
+        }
+        catch(err){
+            logger.error(addRemoteIPToFileLogger(`Unable to get the products from DB ${err}`,request.location.ip,path,method));
+        }
             return h.response(products).code(200);
         },
         config : {
+            validate : {
+                query : Joi.object(
+                    {
+                        'category' : Joi.string().min(1).max(2),
+                        'sub category' : Joi.string().min(1).max(2),
+                        offset : Joi.string().min(1).max(2)
+                    }
+                ),
+                failAction : function (request,h , source, error) {
+                    return h.response({ code: 400, message: source.details[0].message}).takeover().code(400);
+                }
+            },
             description : 'This API is for listing the products along with their details based on the Category and Sub Category fields',
             notes : `category and subcategory fields are being used as query params for filtering the results
                     If category provided doesn't match with the category of the products available then all products will be listed
@@ -1093,54 +1194,82 @@ server.route(
     {
         method : ['PUT','POST'],
         path : '/products/edit',
-        handler : function(request,h){
-            let authHeader = request.headers['authorization'],path = '/addproduct',method = request.method;
-            logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
-            if(authHeader == undefined){
-                logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
-                return h.response('Header missing in the request').code(401);
-            }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
-            if(typeof resp != 'object'){
-                logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
-                return h.response(resp).code(401);
-            }
-            // console.log('Response received : ',resp);
-            // console.log('Username after decoding from token : ',resp['uname']);
-            let uname = resp['uname'];
-            if(admin_user_list.includes(uname)){
-                let payload = JSON.parse(request.payload),item_name = payload['item_name'];
-            if(uname == undefined || uname == '' || !(uname in active_user_list)){
-                return h.response('kindly provide valid username in request payload').code(400);
-            }
-            else if(!(admin_user_list.includes(uname))){
-                logger.warn(addRemoteIPToFileLogger(`Unable to add the product since user is not a Admin`,request.location.ip,path,method));
-                return h.response('Unable to perform action since user isn\'t an Admin').code(400);
-            }
-            else if(!(item_name in products)){
-                logger.error(addRemoteIPToFileLogger(`Invalid item name being passed in the request ${item_name} `,request.location.ip,path,method));
-                return h.response('Mentioned item name is improper').code(400);
-            }
-            else{
-                let productDetails = products[item_name],invalid_keys = [],updated_keys = [];
-                for(const [key,value] of Object.entries(payload)){
-                    if(key in productDetails){
-                        productDetails[key] = value;
-                        updated_keys.push(key);
+        handler : async function(request,h){
+            let authHeader = request.headers['authorization'],path = '/addproduct',method = request.method,payload = request.payload,status = 500,response = {};
+            try{
+                logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
+                if(authHeader == undefined){
+                    logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
+                    return h.response('Header missing in the request').code(401);
+                }
+                let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+                if(typeof resp != 'object'){
+                    logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
+                    return h.response(resp).code(401);
+                }
+
+                const user = await User.findOne({where : { USER_ID : resp.user_id}});
+                if(user == null){
+                    response.msg = 'Improper user';
+                    status = 400;
+                }
+                else if(user.IS_ADMIN == false){
+                    response.msg = 'User not a Admin';
+                    status = 401;
+                }
+                else{
+                    const productPresent = await ProductDetails.findOne({where :{PRODUCT_ID :payload['product id']}});
+                    if(productPresent == null){
+                        response.msg = 'Improper product id being passed';
+                        status = 400;
                     }
                     else{
-                        invalid_keys.push(key);
+                        let updateJson = {},quantity = productPresent.AVAILABLE_QUANTITY;
+                        if(payload['quantities to add'] != null){
+                            quantity += payload['quantities to add'];
+                        }
+                        const reqKeysWithServerKeys = {'original price in rupees' : 'ORIGINAL_PRICE','discounted price in rupees' : 'DISCOUNTED_PRICE','quantities to add' : 'AVAILABLE_QUANTITY'};
+                        for(let [key,value] of Object.entries(payload)){
+                            if(key == 'product id'){
+                                continue;
+                            }
+                            if(key == 'quantities to add'){
+                                value = quantity;
+                            }
+                            updateJson[reqKeysWithServerKeys[key]] = value;
+                        }
+                        const product = await ProductDetails.update(updateJson, {where : {PRODUCT_ID :payload['product id'] }});
+                        logger.info(addRemoteIPToFileLogger(`Product ID : ${payload['product id']} has been made updated successfully `,request.location.ip,path,method));
+                        let auditlog =  await AuditLogs.create({ACTIONS : 'Product update',FIELDS_AFFECTED : updateJson,RECORD_ID : payload['product id'],USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Product']});
+                        logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                        response.msg = 'Product has been updated successfully';
+                        status = 200;
                     }
                 }
-                products[item_name] = productDetails;
-                let resultobj = {};
-                resultobj['updated_keys'] = updated_keys;
-                resultobj['invalid_keys'] = invalid_keys;
-                logger.info(addRemoteIPToFileLogger(`updated keys : ${updated_keys} invalid keys : ${invalid_keys}`,request.location.ip,path,method));
-                return h.response(resultobj).code(200);
+            }
+            catch(error){
+                response.msg = 'Error occurred while updating product ';
+                logger.error(addRemoteIPToFileLogger(`Error occurred while updating product ${error}`,request.location.ip,path,method));
+            }
+            return h.response(response).code(status);
+        },
+        config : {
+            validate : {
+                payload : Joi.object(
+                    {
+                        'product id' : Joi.number().min(1).max(50).required(),
+                        'original price in rupees' : Joi.number().min(1).max(100000),
+                        'discounted price in rupees' : Joi.number().min(1).max(100000),
+                        'quantities to add' : Joi.number().min(1).max(100000)
+                    }
+                ),
+                failAction : function (request,h , source, error) {
+                    let obj = [];
+                    source.details.forEach(errorMsg => obj.push(errorMsg.message));
+                    return h.response({ code: 400, message: obj}).takeover().code(400);
+                }
             }
         }
-    }
     },
     {
         method : 'POST',
@@ -1354,9 +1483,10 @@ server.route(
     {
         method : 'GET',
         path : '/getordereditems',
-        handler : function(request,h){
-
-            let authHeader = request.headers['authorization'],path = '/getordereditems',method = request.method;
+        handler : async function(request,h){
+            let authHeader = request.headers['authorization'],path = '/getordereditems',method = request.method,invoicess = {}, from = request.query['offset'], fromRange = ( from != null && !isNaN(Number(from)))  ? from : 0,status = 500;
+            console.log('Type of offset :::::: ',typeof from);
+            try{
             logger.info(addRemoteIPToFileLogger(`Inside /getordereditems request`,request.location.ip,path,method));
             if(authHeader == undefined){
                 logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
@@ -1368,13 +1498,57 @@ server.route(
                 return h.response(resp).code(401);
             }
             // console.log('Response received : ',resp);
-            // console.log('Username after decoding from token : ',resp['uname']);
-            let uname = resp['uname'];
-            if(userOrderedItems[uname] == undefined){
-                userOrderedItems[uname] = [];
+            // console.log('Username after decoding from token : ',resp['uname']);  on : {'Invoice.INVOICE_ID' : 'InvoiceLineItems.INVOICE_ID'},
+
+            invoicess = await Invoice.findAll({
+                where : {
+                    BROUGHT_BY : resp.user_id
+                },
+                include : [{
+                  model: InvoiceLineItems,
+                  required : true
+                }],
+                order : [['INVOICE_ID','DESC']],
+                offset : fromRange,
+                limit : 5
+                }
+              );
+            status = 200;
+            if(Object.keys(invoicess).length == 0){
+                invoicess.msg = 'No orders found ';
+                logger.info(addRemoteIPToFileLogger(`No orders are being placed for the user ${resp.user_id}`,request.location.ip,path,method));
             }
-            logger.info(addRemoteIPToFileLogger(`Successfully responded with the ordered details to the user ${JSON.stringify(userOrderedItems[uname])}`,request.location.ip,path,method));
-            return h.response(userOrderedItems[uname]).code(200);
+            logger.error(addRemoteIPToFileLogger(`Successfully queried and got the results ::: ${invoicess}`,request.location.ip,path,method));
+            // else if(invoicess.length == 0){
+            //     invoicess.msg = 'No invoices found 2';
+            //     logger.info(addRemoteIPToFileLogger(`No orders are being placed for the 22 user ${resp.user_id}`,request.location.ip,path,method));
+            // }
+            // console.log('Value of invoices is :::::::: ',Object.keys(invoicess).length );
+
+            // let invoiceWithLineItems = await InvoiceLineItems.findAll({
+            //     include: {
+            //       model: Invoice,
+            //       where : {
+            //         BROUGHT_BY : resp.user_id
+            //       },
+            //       required: true
+            //     },
+            //     group: [InvoiceLineItems.INVOICE_ID]
+            //   });
+            }
+            catch(err){
+                invoicess.msg = 'An error has occurred while getting the invoice details';
+                logger.error(addRemoteIPToFileLogger(`Error Details ::: ${err}`,request.location.ip,path,method));
+            }
+
+
+            // let uname = resp['uname'];
+            // if(userOrderedItems[uname] == undefined){
+            //     userOrderedItems[uname] = [];
+            // }
+            // logger.info(addRemoteIPToFileLogger(`Successfully responded with the ordered details to the user ${JSON.stringify(userOrderedItems[uname])}`,request.location.ip,path,method));
+            console.log('Length of invoices :::: ',invoicess);
+            return h.response(invoicess).code(status);
         }
     },
     {
@@ -1506,46 +1680,114 @@ server.route(
     
     },
     {
-        method : 'POST',
+        method : ['POST'],
         path : '/product/outofstock',
-        handler : function(request,h){
-            let authHeader = request.headers['authorization'],method = 'POST',path = '/product/outofstock';
-            if(authHeader == undefined){
-                return h.response('Header missing in the request').code(401);
-            }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
-            console.log('Resp after token validation : ',resp);
-            if(typeof resp != 'object'){
-                return h.response(resp).code(401);
-            }
-            // console.log('Response received : ',resp);
-            // console.log('Username after decoding from token : ',resp['uname']);
-            let uname = resp.uname;
-            if(admin_user_list.includes(uname)){
-                let payload = JSON.parse(request.payload),item_name = payload['item name'];
-                console.log(payload);
-                console.log(uname);
-                console.log(uname in active_user_list);
-                if(uname == undefined || uname == '' || !(uname in active_user_list)){
-                    return h.response('kindly provide valid username in request payload').code(400);
+        handler : async function(request,h){
+            let authHeader = request.headers['authorization'],path = '/product/outofstock',method = request.method,payload = request.payload,status = 500,response = {};
+            try{
+                logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
+                if(authHeader == undefined){
+                    logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
+                    return h.response('Header missing in the request').code(401);
                 }
-                else{
-                        if(products[item_name] == undefined){
-                            return h.response('kindly provide valid item name in request payload').code(400);
+                let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+                if(typeof resp != 'object'){
+                    logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
+                    return h.response(resp).code(401);
+                }
+                const user = await User.findOne({where : { USER_ID : resp.user_id}});
+                    if(user == null){
+                        response.msg = 'Improper user';
+                        status = 400;
+                    }
+                    else if(user.IS_ADMIN == false){
+                        response.msg = 'User not a Admin';
+                        status = 401;
+                    }
+                    else{
+                        const productPresent = await ProductDetails.findOne({where :{PRODUCT_ID :payload["product id"]}});
+                        if(productPresent == null){
+                            response.msg = 'Improper product id being passed';
+                            status = 400;
                         }
                         else{
-                            products[item_name]['Out_of_stock'] = true;
-                            return h.response(`Item ${item_name} moved to Out Of Stock`).code(200);
+                            let updateJson = {AVAILABLE_QUANTITY : 0},quantity = productPresent.AVAILABLE_QUANTITY;
+                            const product = await ProductDetails.update(updateJson, {where : {PRODUCT_ID :payload["product id"] }});
+                            logger.info(addRemoteIPToFileLogger(`Product ID : ${payload['product id']} has been made to Out Of Stock `,request.location.ip,path,method));
+                            let auditlog =  await AuditLogs.create({ACTIONS : 'Product out of stock',FIELDS_AFFECTED : updateJson,RECORD_ID : payload['product id'],USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Product']});
+                            logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                            response.msg = 'Product has been made to Out Of Stock ';
+                            status = 200;
                         }
+                    }
+            }
+            catch(error){
+                response.msg = 'Error occurred while updating product ';
+                logger.error(addRemoteIPToFileLogger(`Error occurred while updating product ${error}`,request.location.ip,path,method));
+            }
+            return h.response(response).code(status);
+        },
+        config : {
+            validate : {
+                payload : Joi.object(
+                    {
+                        'product id' : Joi.number().min(1).max(50).required()
+                    }
+                ),
+                failAction : function (request,h , source, error) {
+                    let obj = [];
+                    source.details.forEach(errorMsg => obj.push(errorMsg.message));
+                    return h.response({ code: 400, message: obj}).takeover().code(400);
                 }
             }
-            else{
-                return h.response('User isn\'t admin So unable to perform the action').code(401);
+        }
+    },
+    {
+        method : 'POST',
+        path : '/product/outofstockks',
+        handler : async function(request,h){
+            let authHeader = request.headers['authorization'],method = 'POST',path = '/product/outofstock',status = 500,response = {};
+            try{
+                if(authHeader == undefined){
+                    return h.response('Header missing in the request').code(401);
+                }
+                let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+                console.log('Resp after token validation : ',resp);
+                if(typeof resp != 'object'){
+                    return h.response(resp).code(401);
+                }
+
+                const user = await User.findOne({where : { USER_ID : resp.user_id}});
+                    if(user == null){
+                        response.msg = 'Improper user';
+                        status = 400;
+                    }
+                    else if(user.IS_ADMIN == false){
+                        response.msg = 'User not a Admin';
+                        status = 401;
+                    }
+                    else{
+                        const productPresent = await ProductDetails.findOne({where :{PRODUCT_ID :payload['product id']}});
+                        if(productPresent == null){
+                            response.msg = 'Improper product id being passed';
+                            status = 400;
+                        }
+                        else{
+                            let updateJson = {AVAILABLE_QUANTITY : 0},quantity = productPresent.AVAILABLE_QUANTITY;
+                            const product = await ProductDetails.update(updateJson, {where : {PRODUCT_ID :payload['product id'] }});
+                            logger.info(addRemoteIPToFileLogger(`Product ID : ${payload['product id']} has been made to Out Of Stock `,request.location.ip,path,method));
+                            let auditlog =  await AuditLogs.create({ACTIONS : 'Product out of stock',FIELDS_AFFECTED : updateJson,RECORD_ID : payload['product id'],USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Product']});
+                            logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+                            response.msg = 'Product has been made to Out Of Stock ';
+                            status = 200;
+                        }
+                    }
             }
-            // for(const [key,value] of Object.entries(active_user_list)){
-            //     obj[key] = value.getPassword();
-            // }
-            // return h.response(obj).code(200);
+            catch(error){
+                response.msg = 'Error occurred while making product out of stock';
+                logger.error(addRemoteIPToFileLogger(`Error occurred while making product out of stock ${error}`,request.location.ip,path,method));
+            }
+            return h.response(response).code(status);
         }
     },
     {
@@ -1604,9 +1846,21 @@ server.route(
             try{
                 let query_params = request.payload,path = '/user/signup', method = request.method;
                 let uname = query_params['username'],pwd = query_params['password'],email = query_params['email'];
-                let updateJson = {FIRST_NAME : query_params['first_name'] , LAST_NAME : query_params['last_name'] , USERNAME : uname , PASSWORD : pwd, EMAIL : email, PHONE : query_params['phone']};
+                let updateJson = {FIRST_NAME : query_params['first_name'] , USERNAME : uname , PASSWORD : pwd, EMAIL : email, PHONE : String(query_params['phone'])};
+                if(query_params['last_name'] != null){
+                    updateJson.LAST_NAME = query_params['last_name'];
+                }
+                console.log('User create query ::::: ',updateJson);
                 let result = await User.create(updateJson);
+                let jobName = 'NewUser_'+result.USER_ID;
+                await newUserQueue.add(jobName,{name : result.FIRST_NAME,email : result.EMAIL},{
+                    removeOnComplete : true,
+                    removeOnFail: {
+                        age: 24 * 3600
+                    }
+                });
                 logger.info(addRemoteIPToFileLogger(`Successfully created account with user name as : ${uname}`,request.location.ip,path,method));
+                logger.info(addRemoteIPToFileLogger(`Job name : ${jobName} has been added to queue : NewUser`,request.location.ip,path,method));
                 let auditlog = await AuditLogs.create({ACTIONS : 'New User Creation',FIELDS_AFFECTED : updateJson,RECORD_ID : result.USER_ID,USER_ID : result.USER_ID,MODULE_ID : moduleWithIdDetails['User']});
                 logger.info(addRemoteIPToFileLogger(`Entry added to AuditLog AuditLogID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
                 return h.response('Successfully created account').code(200);
@@ -1615,7 +1869,14 @@ server.route(
                 let errorObj = {};
                 errorObj.error_message = err.message;
                 errorObj.message = 'Unable to create account at this moment';
+                if(err.errors != null){
+                    let invalidInputs = [];
+                    err.errors.forEach(obj =>invalidInputs.push(obj.message));
+                    errorObj['Reasons'] = invalidInputs;
+                }
                 logger.error(addRemoteIPToFileLogger(`Unable to create account at this moment with user name as : ${request.payload['username']}`,request.location,'/user/signup',request.method));
+                logger.error({message : `ERROR MESSAGE : ${err.message} ERROR STACK ::::::: ${err.stack}`});
+                logger.error({message : `ERROR DETAILS : ${JSON.stringify(err.errors)}`});
                 return h.response(errorObj).code(500);
             }
         },
@@ -1649,3 +1910,6 @@ server.route(
         }
     }]
 )
+
+
+// module.exports = addRemoteIPToFileLogger;

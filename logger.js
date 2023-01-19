@@ -37,7 +37,13 @@ let logger = null;
 // }
 
 const myformat = printf(({level , message , timestamp, ...metadata}) => {
-    return `${timestamp} [${level.toUpperCase()}] ${metadata['Remote IP Address']} ${metadata['Method']} ${metadata['Path']} ${message}`;
+    let remoteIPAddress = metadata['Remote IP Address'],path = metadata['Path'];
+    if(path == undefined && remoteIPAddress == undefined){
+        return `${timestamp} [${level.toUpperCase()}] ${message}`;
+    }
+    else{
+        return `${timestamp} [${level.toUpperCase()}] ${remoteIPAddress} ${metadata['Method']} ${path} ${message}`;
+    }
 })
 
 if(process.env.NODE_ENV == 'production'){

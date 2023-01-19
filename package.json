@@ -6,8 +6,8 @@
   "scripts": {
     "start": "NODE_ENV=production nodemon serverWithDB.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "make-model" : "npx sequelize-cli model:generate --name user_details --attributes email:string",
-    "migrate" : "npx sequelize-cli db:migrate"
+    "make-model": "npx sequelize-cli model:generate --name user_details --attributes email:string",
+    "migrate": "npx sequelize-cli db:migrate"
   },
   "repository": {
     "type": "git",
@@ -26,16 +26,19 @@
   "dependencies": {
     "@hapi/joi": "^17.1.1",
     "@hapi/jwt": "^3.0.0",
+    "bullmq": "^3.5.8",
     "hapi": "^18.1.0",
     "hapi-auth-jwt2": "^10.2.0",
     "hapi-geo-locate": "^4.1.1",
     "joi": "^14.3.1",
     "jsonwebtoken": "^9.0.0",
+    "nodemailer": "^6.9.0",
     "nodemon": "^2.0.20",
     "pg": "^8.8.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.28.0",
-    "winston": "^3.8.2"
+    "winston": "^3.8.2",
+    "xoauth2": "^1.2.0"
   },
   "devDependencies": {
     "sequelize-cli": "^6.5.2"
