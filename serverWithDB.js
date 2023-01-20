@@ -41,24 +41,6 @@ var transporter = nodemailer.createTransport({
     }
   });
 
-let signupMailOptions = {
-    from : 'arra98mu11@gmail.com',
-    to : 'arun98mu@gmail.com',
-    subject : 'New account created',
-    text : `Welcome to Amart,
-            New Account has been created for you.Kindly access our Amart to explore new things.`
-};
-
-transporter.sendMail(signupMailOptions,function(error,info){
-    if(error){
-        console.log(`Error occurred while sending mail ${JSON.stringify(error)}`);
-        throw error;
-    }
-    else{
-        console.log(`Account successfully created ${JSON.stringify(info)}`);
-    }
-})
-
 
 const myQueue = new Queue('Queue_1');
 myQueue.add('Job_1',{name : 'arun'});
@@ -78,10 +60,72 @@ const newUserQueue = new Queue('NewUser');
 const newUserWorker = new Worker('NewUser', async job => {
     const data = job.data;
     logger.info({message : `Worker started processing JOB :: ${job.name}`});
-    // let obj = mailOptions.clone();
-    // obj.to = data.email;
-    transporter.sendMail();
-    // throw new Error('Throwing custom error');
+
+    let signupMailOptions = {
+        from : 'arra98mu11@gmail.com',
+        to : data.email,
+        subject : 'New account created',
+        html : `<h3>Hi ${data.name} , <h3>
+                <h4>Welcome to Amart...!!!<h4>
+                <p>New Account has been created for you.Kindly access our Amart to explore new things.<p>`
+    };
+    
+    transporter.sendMail(signupMailOptions,function(error,info){
+        if(error){
+            logger.log({message :`Error occurred while sending mail ${JSON.stringify(error)}`});
+            throw error;
+        }
+        else{
+            logger.log({message :`Mail successfully sent to new user ${JSON.stringify(info)}`});
+        }
+    })
+
+  } );
+
+  const invoiceSendQueue = new Queue('InvoiceProcess');
+const invoiceSendWorker = new Worker('InvoiceProcess', async job => {
+    const data = job.data;
+    logger.info({message : `Worker started processing JOB :: ${job.name}`});
+    console.log('Data received :::: ',data);
+    let orderedDate = data.invoice.orderedDate;
+    orderedDate = orderedDate.replace("T"," ");
+    orderedDate = orderedDate.replace("Z"," GMT");
+    let msgTable = `<h3>Hi ${data.username} , <h3><p>The following is the Invoice for the order that you had placed on ${orderedDate}</p><table>
+                        <tr>
+                            <th>Item Name</th>
+                            <th style = 'padding: 10%'>Quantity</th>
+                            <th style = 'padding: 15%'>Unit Price</th>
+                            <th style = 'padding: 15%'>Total Price</th>
+                        </tr>`;
+    let invoiceItems = data.invoice_line_items;
+    invoiceItems.forEach(obj => {
+        let str = `<tr><td>${obj["item name"]}</td><td style = 'padding: 10%'>${obj.qty}</td><td style = 'padding: 15%'>${obj.price}</td><td style = 'padding: 15%'>${obj.total}</td></tr>`;
+        msgTable += str;
+    });
+    msgTable += '</table>' ;
+    msgTable += `<h4><i>Total items Brought : ${data.invoice.total_items}</i><h4>`;
+    msgTable += `<h4><i>Total Amount Paid : ${data.invoice.total_amount}</i><h4>`;
+    msgTable += `<h4><i>Payment done through : ${data.invoice.payment_method}</i><h4>`;
+
+    console.log('HTML content created is :: ',msgTable);
+
+    let invoiceMailOptions = {
+        from : 'arra98mu11@gmail.com',
+        to : data.email,
+        subject : 'Invoice details',
+        html : msgTable
+    };
+    
+    transporter.sendMail(invoiceMailOptions,function(error,info){
+        if(error){
+            logger.log({message :`Error occurred while sending invoice mail ${JSON.stringify(error)}`});
+            throw error;
+        }
+        else{
+            logger.log({message :`Invoice Mail successfully sent to user ${JSON.stringify(info)}`});
+        }
+    })
+
   } );
 
   newUserWorker.on('progress',(Job) => {
@@ -1319,9 +1363,11 @@ server.route(
                                     itemsAndQuantities[key] = value;
                                 }
                                 totalPrice += (price * value);
+                                const baseItems= await BaseItems.findOne({where : {BASE_ITEM_ID : product.BASE_ITEM_ID}});
                                 let obj = {};
                                 obj.availQty = available_qty;
                                 obj.price = price;
+                                obj.item_name = baseItems.ITEM_NAME;
                                 prodWithPrice[key] = obj;
                             }
                         }
@@ -1334,7 +1380,9 @@ server.route(
                     auditlog = await AuditLogs.create({ACTIONS : 'New Invoice addition',FIELDS_AFFECTED : updateJson,RECORD_ID : invoice.INVOICE_ID,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Invoices']});
                     logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
                     try{
+                        let invoiceLineItemsObj = [];
                         for(const [key,value] of Object.entries(prodWithPrice)){
+                            let lineItemObj = {};
                             let id = Number(key);
                             updateJson = {QUANTITY : itemsAndQuantities[key], ITEM_PRICE :value.price ,TOTAL_PRICE : itemsAndQuantities[key] * value.price, INVOICE_ID : invoice.INVOICE_ID,PRODUCT_ID : id};
                             let invoice_line_items =  await InvoiceLineItems.create( updateJson);
@@ -1348,12 +1396,40 @@ server.route(
                                     }
                                 }
                             );
+                            lineItemObj['item name'] = value.item_name;
+                            lineItemObj['qty'] = itemsAndQuantities[key];
+                            lineItemObj['price'] = value.price;
+                            lineItemObj['total'] = itemsAndQuantities[key] * value.price;
+                            invoiceLineItemsObj.push(lineItemObj);
                             logger.info(addRemoteIPToFileLogger(`Available quantity has been reduced successfully for product id : ${id} `,request.location.ip,path,method));
+
                             auditlog =  await AuditLogs.create({ACTIONS : 'New Invoice Lineitem addition',FIELDS_AFFECTED : updateJson,RECORD_ID : invoice_line_items.INVOICE_LINE_ITEM_ID,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['InvoiceLineItems']});
                             logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
+
                             auditlog =  await AuditLogs.create({ACTIONS : 'Product Available quantity reduction',FIELDS_AFFECTED : updateJson2,RECORD_ID : id,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Product']});
                             logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
                         }
+                        const user = await User.findOne({where : { USER_ID : resp.user_id}});
+                        let payMethod = (invoice.PAYMENT_SOURCE == 0) ? 'Credit Card' : (invoice.PAYMENT_SOURCE == 1) ? 'Debit Card' : (invoice.PAYMENT_SOURCE == 2) ? 'UPI' : 'Wallet';
+                        let jobDetails  = {
+                            email : user.EMAIL,
+                            username : user.FIRST_NAME,
+                            invoice : {
+                                total_items : invoice.TOTAL_ITEMS_BROUGHT,
+                                total_amount : invoice.TOTAL_AMOUNT,
+                                payment_method : payMethod,
+                                orderedDate : invoice.ORDERED_TIME
+                            },
+                            invoice_line_items : invoiceLineItemsObj
+                        };
+                        let jobName = 'InvoiceToProcess_'+invoice.INVOICE_ID;
+                        await invoiceSendQueue.add(jobName,jobDetails,{
+                            removeOnComplete : true,
+                            removeOnFail: {
+                                age: 24 * 3600
+                            }
+                        });
+                        logger.info(addRemoteIPToFileLogger(`Job name : ${jobName} has been added to queue : invoiceSendQueue`,request.location.ip,path,method));
                         response.msg = 'Invoice has been created successfully';
                         status = 200;
                     }
