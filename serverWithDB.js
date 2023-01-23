@@ -8,6 +8,33 @@ const {Sequelize , DataTypes} = require('sequelize');
 const sequelize = require('./sequelize-init');
 const invoice = require('./modelsnn/invoice');
 
+const {createClient} = require('redis');
+
+const redisClient = createClient();
+const { Client } = require("@elastic/elasticsearch");
+
+const elasticClient = new Client({
+  cloud: {
+    id: "My_deployment:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvOjQ0MyRhODk0ZjAzOTg2N2Y0NDhkYjdjZDRmOGI3N2Q0MmVkMiRhZGJlM2JlMzkyMDA0OWQ2YTM5ZDg5YmNkYjY3YjYxYw==",
+  },
+  auth: {
+    username: 'elastic',
+    password: 'wKec5jdSLWI7vauiAfiZ8Yrq',
+  },
+});
+
+// const elasticClient = require('./ElasticSearch/elastic-client');
+// const createIndex = require('./ElasticSearch/create-index');
+
+
+// const elasticClient = require("./elastic-client");
+
+const createIndex = async (indexName) => {
+  await elasticClient.indices.create({ index: indexName });
+  console.log("Index created with elastic name as ::: ",indexName);
+};
+
+
 // let transporter = nodemailer.createTransport("SMTP",{
 //     service : 'outlook',
 //     auth :{
@@ -520,7 +547,27 @@ const init = async () => {
     // });
     console.log('in init');
     await server.start();
+    await redisClient.connect();
+    redisClient.on('error', (err) => logger.log({message : `Redis Client Error ${JSON.stringify(err)}`}));
+    let checkingWhetherIndexExists = await elasticClient.indices.exists({
+        index :  'baseproductsearch'
+    });
+    if(!checkingWhetherIndexExists){
+        createIndex('baseproductsearch');
+    }
+    console.log('Checker result ::: ',checkingWhetherIndexExists);
+    // createIndex('baseproductsearch');
     // require('./modelsnn/index');
+    // await elasticClient.ping({
+    //     requestTimeOut : 1000,
+    // },function(error){
+    //     if(error){
+    //         console.log('Elastic Search Cluster is down');
+    //     }
+    //     else{
+    //         console.log('Elastic Search Cluster is up and started running now');
+    //     }
+    // });
     let module = await AmartConstants.findAll({where : { TYPE : 1}});
     console.log('MODULE ::::: ' ,module);
     for(const [key,value] of  Object.entries(module)){
@@ -772,8 +819,19 @@ server.route(
                 return h.response(resp).code(401);
             }
             try{
-                const result = await User.findOne({where : { USER_ID : resp.user_id }});
-                if(result.IS_ADMIN == false){
+                // const result = await User.findOne({where : { USER_ID : resp.user_id }});
+                // let res = await redisClient.hGetAll('USER_DETAILS');
+                // console.log('Result ANSWER :: ',res);
+                // console.log('resp :::: ',resp);
+                // console.log('resp type :::: ',typeof resp);
+                // console.log('resp USERID :::: ',resp.user_id);
+                // console.log('type of USERID :::: ',typeof resp.user_id);
+                let result = await redisClient.hGet('USER_DETAILS',String(resp.user_id));
+                // console.log('Result 123 ANSWER :: ',result);
+                // result = JSON.parse(result);
+                // console.log('result.IS_ADMIN :: ',result.IS_ADMIN);
+                // console.log('type of result.IS_ADMIN :: ',typeof result.IS_ADMIN);
+                if(result == null || result.IS_ADMIN == false){
                     output.msg = 'User isn\'t admin So unable to perform the action';
                     status = 401;
                 }
@@ -799,6 +857,8 @@ server.route(
             catch(err){
                 output.msg = 'Error occurred while creating category';
                 logger.error(addRemoteIPToFileLogger(`Error occurred while checking user is Admin: : ${err}`,request.location.ip,path,method));
+                logger.error({message : `ERROR MESSAGE : ${err.message} ERROR STACK ::::::: ${err.stack}`});
+                logger.error({message : `ERROR DETAILS : ${JSON.stringify(err.errors)}`});
             }
             return h.response(output).code(status);
 
@@ -832,8 +892,9 @@ server.route(
                 return h.response(resp).code(401);
             }
             try{
-                const result = await User.findOne({where : { USER_ID : resp.user_id }});
-                if(result.IS_ADMIN == false){
+                // const result = await User.findOne({where : { USER_ID : resp.user_id }});
+                const result = await redisClient.hGet('USER_DETAILS',String(resp.user_id));
+                if(result == null ||result.IS_ADMIN == false){
                     output.msg = 'User isn\'t admin So unable to perform the action';
                     status = 401;
                 }
@@ -982,8 +1043,11 @@ server.route(
             console.log("asdfasdf    " ,resp);
 
             try{
-                const user = await User.findOne({where : { USER_ID : resp.user_id }});
-                if(user.IS_ADMIN == false){
+                // const user = await User.findOne({where : { USER_ID : resp.user_id }});
+                console.log('JWT Details ::: ',resp);
+                const user = await redisClient.hGet('USER_DETAILS',String(resp.user_id));
+                console.log('Redis Details ::: ',user);
+                if(user == null ||user.IS_ADMIN == false){
                     output.msg = 'User isn\'t admin So unable to perform the action';
                     status = 401;
                 }
@@ -995,8 +1059,9 @@ server.route(
                     }
                     else{
                         try{
-                            let updateJson = {ITEM_NAME : payload['name'],ITEM_INFO : payload['basic'],CREATED_USER : user.USER_ID},auditlog;
+                            let updateJson = {ITEM_NAME : payload['name'],ITEM_INFO : payload['basic'],CREATED_USER : resp.user_id},auditlog;
                             const baseitems = await BaseItems.create(updateJson);
+                            console.log('Value of BaseItems :::: ',baseitems);
                             auditlog = await AuditLogs.create({ACTIONS : 'New BaseItem addition',FIELDS_AFFECTED : updateJson,RECORD_ID : baseitems.BASE_ITEM_ID,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['BaseItems']});
                             logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
                             let varieties = payload["varieties"];
@@ -1007,12 +1072,28 @@ server.route(
                                 delete variety['available quantities'];
                                 output.msg = `Product successfully got created`;
                                 status = 200;
-                                updateJson = {ADDITONAL_INFO : variety, AVAILABLE_QUANTITY : available_qty, ORIGINAL_PRICE : item_price, DISCOUNTED_PRICE : discount_price,CREATED_USER : user.USER_ID, BASE_ITEM_ID : baseitems.BASE_ITEM_ID,CATEGORY_ID : payload['category'], SUB_CATEGORY_ID : payload['subcategory'], IS_ACTIVE : true};
+                                updateJson = {ADDITONAL_INFO : variety, AVAILABLE_QUANTITY : available_qty, ORIGINAL_PRICE : item_price, DISCOUNTED_PRICE : discount_price,CREATED_USER : resp.user_id, BASE_ITEM_ID : baseitems.BASE_ITEM_ID,CATEGORY_ID : payload['category'], SUB_CATEGORY_ID : payload['subcategory'], IS_ACTIVE : true};
                                 const product = await ProductDetails.create(updateJson);
                                 logger.info(addRemoteIPToFileLogger(`Product successfully got created  ${product.PRODUCT_ID}`,request.location.ip,path,method));
                                 auditlog = await AuditLogs.create({ACTIONS : 'New Product addition',FIELDS_AFFECTED : updateJson,RECORD_ID : product.PRODUCT_ID,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Product']});
                                 logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
                             })
+                            let phraseToBeSearched = payload['name'];
+                            for(const [key1,value1] of Object.entries(payload['basic'])){
+                                for(let key2 in value1){
+                                    phraseToBeSearched+= ' ';
+                                    phraseToBeSearched+= value1[key2];
+                                }
+                            }
+                            console.log('Phrase String :::: ',phraseToBeSearched);
+                            const result = await elasticClient.index({
+                                index: "baseproductsearch",
+                                document: {
+                                    id: baseitems.BASE_ITEM_ID,
+                                    content: phraseToBeSearched,
+                                },
+                            });
+                            console.log('Result after adding data to ELK :::: ',result);
                         }
                         catch(error){
                             logger.error(addRemoteIPToFileLogger(`Error occurred while creating Base Items ${error}`,request.location.ip,path,method));
@@ -1024,6 +1105,8 @@ server.route(
             catch(err){
                 output.msg = `Error occurred while creating products`;
                 logger.error(addRemoteIPToFileLogger(`Error occurred while checking admin check : ${err}`,request.location.ip,path,method));
+                logger.error({message : `ERROR MESSAGE : ${err.message} ERROR STACK ::::::: ${err.stack}`});
+                logger.error({message : `ERROR DETAILS : ${JSON.stringify(err.errors)}`});
             }
             return h.response(output).code(status);
         },
@@ -1069,7 +1152,9 @@ server.route(
                 }
                 let userid = resp.user_id,payload = request.payload;
 
-                const user = await User.findOne({where : { USER_ID : userid}});
+                // const user = await User.findOne({where : { USER_ID : userid}});
+                const user = await redisClient.hGet('USER_DETAILS',String(resp.user_id));
+                console.log('Redis Details ::: ',user);
                 if(user == null){
                     response.msg = 'Improper user';
                     status = 400;
@@ -1130,7 +1215,10 @@ server.route(
                     return h.response(resp).code(401);
                 }
                 let userid = resp.user_id,payload = request.payload,address_id = payload['address id'];
-                const user = await User.findOne({where : { USER_ID : userid}});
+                // const user = await User.findOne({where : { USER_ID : userid}});
+                const user = await redisClient.hGet('USER_DETAILS',String(resp.user_id));
+                // logger.log({message : `Redis Details ::: ${JSON.stringify(user)}`});
+                logger.info(addRemoteIPToFileLogger(`Redis Details ::: ${JSON.stringify(user)}`,request.location.ip,path,method));
                 const address  = await Address.findOne({where : {USER_ID : userid,ADDRESS_ID : address_id}})
                 if(user == null){
                     response.msg = 'Improper user';
@@ -1409,7 +1497,10 @@ server.route(
                             auditlog =  await AuditLogs.create({ACTIONS : 'Product Available quantity reduction',FIELDS_AFFECTED : updateJson2,RECORD_ID : id,USER_ID : resp.user_id,MODULE_ID : moduleWithIdDetails['Product']});
                             logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
                         }
-                        const user = await User.findOne({where : { USER_ID : resp.user_id}});
+                        // const user = await User.findOne({where : { USER_ID : resp.user_id}});
+                        const user = await redisClient.hGet('USER_DETAILS',String(resp.user_id));
+                        console.log('Redis Details ::: ',user);
+                        // if(user == null){
                         let payMethod = (invoice.PAYMENT_SOURCE == 0) ? 'Credit Card' : (invoice.PAYMENT_SOURCE == 1) ? 'Debit Card' : (invoice.PAYMENT_SOURCE == 2) ? 'UPI' : 'Wallet';
                         let jobDetails  = {
                             email : user.EMAIL,
@@ -1652,26 +1743,135 @@ server.route(
     },
     {
         method : 'GET',
+        path : '/search',
+        handler : async function(request,h){
+            let authHeader = request.headers['authorization'],method = 'GET',path ='/userlogs', resultJSON = [],response = {},status = 500;
+            try{
+                if(authHeader == undefined){
+                    return h.response('Header missing in the request').code(401);
+                }
+                let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+                if(typeof resp != 'object'){
+                    return h.response(resp).code(401);
+                }
+                let searchterm = request.query['searchword'];
+                const result = await elasticClient.search({
+                    index: "baseproductsearch",
+                    "query": {
+                        "query_string" : {"default_field" : "content", "query" : searchterm}
+                    },
+                });
+                for(const [key,value] of Object.entries(result.hits.hits)){
+                    const baseItemDetails = await BaseItems.findOne({where : {BASE_ITEM_ID : value['_source'].id}});
+                    // let productDetails = {};
+                    // productDetails["Item Name"] = baseItemDetails.ITEM_NAME;
+                    // productDetails["Item Info"] = baseItemDetails.ITEM_INFO;
+                    const products = await ProductDetails.findAll({where : {BASE_ITEM_ID : value['_source'].id}});
+
+                    // ,
+                    // include : [{
+                    //     model : BaseItems,
+                    //     required: true
+                    // }]
+
+                    for(const [key,value] of Object.entries(products)){
+                        const individualProductDetails = value.dataValues;
+                        // console.log('ABCD ::: ',individualProductDetails);
+                        let itemDetails = {};
+                        itemDetails["Item Name"] = baseItemDetails.ITEM_NAME;
+                        itemDetails["Item Info"] = Object.assign({},baseItemDetails.ITEM_INFO,individualProductDetails.ADDITONAL_INFO);
+                        itemDetails["Original Price"] = individualProductDetails.ORIGINAL_PRICE;
+                        itemDetails["Discounted Price"] = individualProductDetails.DISCOUNTED_PRICE;
+                        resultJSON.push(itemDetails);
+                        console.log('-------');
+                        // console.log('Product VAL ::: ',value);
+                        console.log('value dataValues ::: ',value.dataValues);
+                        console.log('-------');
+                    }
+                }
+                response.msg = resultJSON.length > 0 ? resultJSON : 'No matching records found';
+                status = 200;
+            }
+            catch(err){
+                response.msg = 'Error occurred while getting data from ELK';
+                status = 500;
+                logger.error({message : `ERROR MESSAGE : ${err.message} ERROR STACK ::::::: ${err.stack}`});
+                logger.error({message : `ERROR DETAILS : ${JSON.stringify(err.errors)}`});
+            }
+
+            return h.response(response).code(200);
+        }
+    },
+    {
+        method : 'GET',
         path : '/userlogs',
-        handler : function(request,h){
-            let authHeader = request.headers['authorization'],method = 'GET',path ='/userlogs';
-            if(authHeader == undefined){
-                return h.response('Header missing in the request').code(401);
+        handler : async function(request,h){
+            let response = {}, status = 500;
+            try{
+                let authHeader = request.headers['authorization'],method = 'GET',path ='/userlogs';
+                if(authHeader == undefined){
+                    return h.response('Header missing in the request').code(401);
+                }
+                let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+                if(typeof resp != 'object'){
+                    return h.response(resp).code(401);
+                }
+                let user = await redisClient.hGet('USER_DETAILS',String(resp.user_id));
+                user = JSON.parse(user);
+                console.log('Redis Details ::: ',user);
+                console.log('IS USER ADMIN ::: ',user['IS_ADMIN']);
+                if(user == null ){
+                    response.msg = 'Improper user';
+                    status = 400;
+                }
+                else if (!user.IS_ADMIN){
+                    response.msg = 'User isn\'t admin So unable to perform the action';
+                    status = 401;
+                }
+                else{
+                    let deleteIndexResult = await elasticClient.indices.delete({
+                        index: ['baseproductsearch']
+                    });
+                    console.log('Delete Index result ::: ',deleteIndexResult);
+                    const baseProducts = await BaseItems.findAll({where : { BASE_ITEM_ID: {
+                        [Sequelize.Op.ne]: null
+                    }
+                    }}
+                    );
+                    createIndex('baseproductsearch');
+                    for(const [key1,value1] of Object.entries(baseProducts)){
+                        console.log('Key :::  ',key1,'value ::: ',value1);
+                        let phraseToBeSearched = value1.dataValues.ITEM_NAME;
+                        let itemDetails = value1.dataValues.ITEM_INFO;
+                        for(const [key2,value2] of Object.entries(itemDetails)){
+                            console.log(' VAL ABC ::: ',value2,' type of ::: ',typeof value2);
+                            for(const key in value2){
+                                console.log('value that needs to be indexed :: ',value2[key]);
+                                phraseToBeSearched+=' ';
+                                phraseToBeSearched+=value2[key];
+                            }
+                        }
+                        console.log('Final concat Text ::: ',phraseToBeSearched);
+                        const result = await elasticClient.index({
+                            index: "baseproductsearch",
+                            document: {
+                            id: value1.dataValues.BASE_ITEM_ID,
+                            content: phraseToBeSearched,
+                            },
+                        });
+                        console.log('Result after adding data :::: ',result);
+                    }
+                response.msg = 'Successfully indexed into Elastic Search';
+                status = 200;
+                }
             }
-            let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
-            if(typeof resp != 'object'){
-                return h.response(resp).code(401);
+            catch(err){
+                response.msg = 'Error occurred while inserting data into ELK';
+                status = 500;
+                logger.error({message : `ERROR MESSAGE : ${err.message} ERROR STACK ::::::: ${err.stack}`});
+                logger.error({message : `ERROR DETAILS : ${JSON.stringify(err.errors)}`});
             }
-            let uname = resp['uname'];
-            if(admin_user_list.includes(uname)){
-                let query_params = request.query,searchusername = query_params['username'];
-                return h.response(logs[searchusername]).code(200);
-            }
-            else{
-                return h.response('User isn\'t admin So unable to perform the action').code(401);
-            }
-            // let query_params = request.query,uname = query_params['username'];
-            // return h.response(logs[uname]).code(200);
+            return h.response(response).code(status);
         }
     },
     {
@@ -1771,7 +1971,9 @@ server.route(
                     logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                     return h.response(resp).code(401);
                 }
-                const user = await User.findOne({where : { USER_ID : resp.user_id}});
+                // const user = await User.findOne({where : { USER_ID : resp.user_id}});
+                const user = await redisClient.hGet('USER_DETAILS',String(resp.user_id));
+            
                     if(user == null){
                         response.msg = 'Improper user';
                         status = 400;
@@ -1888,7 +2090,17 @@ server.route(
                     else{
                         let updateJson = { IS_ADMIN : true};
                         const userUpdate = User.update(updateJson,{ where : { USER_ID : user_id}});
-                        logger.info(addRemoteIPToFileLogger(`User ID : ${user_id} has been made as Admin successfully`,request.location.ip,path,method));
+                        logger.info(addRemoteIPToFileLogger(`User ID : ${user_id} has been made as Admin successfully in DB`,request.location.ip,path,method));
+                        let redisUserUpdate = await redisClient.hGet('USER_DETAILS',String(user_id));
+                        redisUserUpdate = JSON.parse(redisUserUpdate);
+                        // console.log('Before update JSON :::: ',redisUserUpdate);
+                        redisUserUpdate.IS_ADMIN = true;
+                        // console.log('update JSON :::: ',redisUserUpdate);
+                        let updateResult = await redisClient.hSet('USER_DETAILS',user_id,JSON.stringify(redisUserUpdate));
+                        // console.log('Redis result ::: ', updateResult);
+                        // let redisUserUpdatee = await redisClient.hGet('USER_DETAILS',String(user_id));
+                        // // console.log('after update getting from Redis ::: ',redisUserUpdatee);
+                        logger.info(addRemoteIPToFileLogger(`User ID : ${user_id} has been made as Admin successfully in Redis`,request.location.ip,path,method));
                         let auditlog =  await AuditLogs.create({ACTIONS : 'Making User Admin',FIELDS_AFFECTED : updateJson,RECORD_ID : user_id,USER_ID : user_id,MODULE_ID : moduleWithIdDetails['User']});
                         logger.info(addRemoteIPToFileLogger(`Added entry to Audit Log ID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
                         resp.msg = `Updated user ID : ${user_id} as Admin`;
@@ -1928,6 +2140,7 @@ server.route(
                 }
                 console.log('User create query ::::: ',updateJson);
                 let result = await User.create(updateJson);
+                logger.info(addRemoteIPToFileLogger(`Successfully created account with user name as : ${uname} in DB`,request.location.ip,path,method));
                 let jobName = 'NewUser_'+result.USER_ID;
                 await newUserQueue.add(jobName,{name : result.FIRST_NAME,email : result.EMAIL},{
                     removeOnComplete : true,
@@ -1935,7 +2148,22 @@ server.route(
                         age: 24 * 3600
                     }
                 });
-                logger.info(addRemoteIPToFileLogger(`Successfully created account with user name as : ${uname}`,request.location.ip,path,method));
+                const newUserInRedis = await redisClient.hSet('USER_DETAILS',result.USER_ID,JSON.stringify({ IS_ADMIN : true , FIRST_NAME : result.FIRST_NAME,EMAIL : result.EMAIL}));
+                // console.log('Result is ::: ',newUserInRedis);
+                // console.log('JSON format ::: ',JSON.parse(newUserInRedis));
+                // let getUser = await redisClient.hGet('USER_DETAILS',String(result.USER_ID));
+                logger.info(addRemoteIPToFileLogger(`Successfully created account with user name as : ${uname} in Redis`,request.location.ip,path,method));
+                // getUser.then((result)=>{
+                //     console.log('Redis call successfull ::::::: ',result);
+                // }).catch(err => {
+                //     console.log('Redis call failed ::::::: ',err);
+                //     console.log('type of err is :::::: ',typeof err);
+                //     console.log(`Redis call failed ::::::: ${JSON.stringify(err)}`);
+                // });
+
+                // console.log('Output Result is ::: ',getUser);
+                // console.log('Output JSON format ::: ',JSON.parse(getUser));
+
                 logger.info(addRemoteIPToFileLogger(`Job name : ${jobName} has been added to queue : NewUser`,request.location.ip,path,method));
                 let auditlog = await AuditLogs.create({ACTIONS : 'New User Creation',FIELDS_AFFECTED : updateJson,RECORD_ID : result.USER_ID,USER_ID : result.USER_ID,MODULE_ID : moduleWithIdDetails['User']});
                 logger.info(addRemoteIPToFileLogger(`Entry added to AuditLog AuditLogID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));

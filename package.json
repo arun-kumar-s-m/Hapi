@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/arun-kumar-s-m/Hapi-Framework#readme",
   "dependencies": {
+    "@elastic/elasticsearch": "^8.6.0",
     "@hapi/joi": "^17.1.1",
     "@hapi/jwt": "^3.0.0",
     "bullmq": "^3.5.8",
@@ -36,6 +37,7 @@
     "nodemon": "^2.0.20",
     "pg": "^8.8.0",
     "pg-hstore": "^2.3.4",
+    "redis": "^4.5.1",
     "sequelize": "^6.28.0",
     "winston": "^3.8.2",
     "xoauth2": "^1.2.0"
