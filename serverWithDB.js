@@ -7,12 +7,16 @@ const logger = require('./logger.js');
 const {Sequelize , DataTypes} = require('sequelize');
 const sequelize = require('./sequelize-init');
 const invoice = require('./modelsnn/invoice');
+const {insertDocumentsToELK,createIndex,searchForText,deleteIndicesInElastic,checkWhetherIndexExists} = require('./search/elasticSearch');
 
 const {createClient} = require('redis');
 
 const redisClient = createClient();
+/* ELK ARK 
 const { Client } = require("@elastic/elasticsearch");
+*/
 
+/* ELK ARK 
 const elasticClient = new Client({
   cloud: {
     id: "My_deployment:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvOjQ0MyRhODk0ZjAzOTg2N2Y0NDhkYjdjZDRmOGI3N2Q0MmVkMiRhZGJlM2JlMzkyMDA0OWQ2YTM5ZDg5YmNkYjY3YjYxYw==",
@@ -22,18 +26,19 @@ const elasticClient = new Client({
     password: 'wKec5jdSLWI7vauiAfiZ8Yrq',
   },
 });
+*/
 
 // const elasticClient = require('./ElasticSearch/elastic-client');
 // const createIndex = require('./ElasticSearch/create-index');
 
 
 // const elasticClient = require("./elastic-client");
-
+/* ELK ARK 
 const createIndex = async (indexName) => {
   await elasticClient.indices.create({ index: indexName });
   console.log("Index created with elastic name as ::: ",indexName);
 };
-
+*/
 
 // let transporter = nodemailer.createTransport("SMTP",{
 //     service : 'outlook',
@@ -202,6 +207,10 @@ SubCategoryDetails.hasMany(ProductDetails,{foreignKey: {name : 'SUB_CATEGORY_ID'
 AmartConstants.hasMany(SubCategoryDetails,{foreignKey: {name : 'CATEGORY_ID',allowNull: false}});
 User.hasMany(CartDetails,{foreignKey : {name : 'USER_ID',allowNull :false}});
 ProductDetails.hasMany(CartDetails,{foreignKey : {name : 'PRODUCT_ID',allowNull :false}});
+ProductDetails.belongsTo(BaseItems,{foreignKey: {name : 'BASE_ITEM_ID',allowNull: false}});
+ProductDetails.belongsTo(AmartConstants,{foreignKey: {name : 'CATEGORY_ID',allowNull: false}});
+ProductDetails.belongsTo(SubCategoryDetails,{foreignKey: {name : 'SUB_CATEGORY_ID',allowNull: false}});
+
 
 
 
@@ -344,13 +353,13 @@ function addRemoteIPToFileLogger(message , remote_ip,path,method){
 // logger.error(new Error('Testing the custom error thrown'));
 
 // myQueue.add('Job_4',{name : 'arun_4'});
-const categoryWithSubCategories = {};
-categoryWithSubCategories['electronics'] = {};
-categoryWithSubCategories['electronics']['pendrives'] = ['hp_64_gb','sandish_64_gb','transcend_64_gb'];
-categoryWithSubCategories['electronics']['phones'] = ['iphone14','oneplus10','samsung galaxy Z1 ultra'];
-categoryWithSubCategories['clothes'] = {};
-categoryWithSubCategories['clothes']['tshirts'] = ['tshirt A','tshirt B','tshirt C'];
-categoryWithSubCategories['clothes']['jeans'] = ['jean A','jean B','jean C'];
+// const categoryWithSubCategories = {};
+// categoryWithSubCategories['electronics'] = {};
+// categoryWithSubCategories['electronics']['pendrives'] = ['hp_64_gb','sandish_64_gb','transcend_64_gb'];
+// categoryWithSubCategories['electronics']['phones'] = ['iphone14','oneplus10','samsung galaxy Z1 ultra'];
+// categoryWithSubCategories['clothes'] = {};
+// categoryWithSubCategories['clothes']['tshirts'] = ['tshirt A','tshirt B','tshirt C'];
+// categoryWithSubCategories['clothes']['jeans'] = ['jean A','jean B','jean C'];
 
 function tokenValidator(token,ip,path,method){
     let decoded = '';
@@ -422,86 +431,86 @@ function tokenValidator(token,ip,path,method){
         // })
     }
 }
-const products = {
-    'jean A' : {
-        name : 'jean A',
-        available_sizes : '32,34,36,38',
-        price_in_Rs : 1000,
-        discounted_price : 900,
-        Out_of_stock : false
-    },
-    'jean B' : {
-        name : 'jean B',
-        available_sizes : '32,34',
-        price_in_Rs : 1200,
-        discounted_price : 1150,
-        Out_of_stock : false
-    },
-    'jean C' : {
-        name : 'jean C',
-        available_sizes : '36,38',
-        price_in_Rs : 15000,
-        discounted_price : 1300,
-        Out_of_stock : false
-    },
-    'tshirt A' : {
-        name : 'tshirt A',
-        available_sizes : '38,40,42,44',
-        price_in_Rs : 500,
-        discounted_price : 450,
-        Out_of_stock : false
-    },
-    'tshirt B' : {
-        name : 'tshirt B',
-        available_sizes : '40,42,44',
-        price_in_Rs : 400,
-        discounted_price : 380,
-        Out_of_stock : false
-    },
-    'tshirt C' : {
-        name : 'tshirt C',
-        available_sizes : '38,42,44',
-        price_in_Rs : 200,
-        discounted_price : 190,
-        Out_of_stock : false
-    },
-    'iphone14' : {
-        name : 'iPhone 14 3GB RAM, 128GB internal',
-        price_in_Rs : 60000,
-        discounted_price : 55000,
-        Out_of_stock : false
-    },
-    'oneplus10' : {
-        name : 'OnePlus 10 8GB RAM, 128GB internal',
-        price_in_Rs : 40000,
-        discounted_price : 33000,
-        Out_of_stock : false
-    },
-    'samsung galaxy Z1 ultra' : {
-        name : 'Samsung Galaxy Z1 Ultra 12GB RAM, 256GB internal',
-        price_in_Rs : 70000,
-        discounted_price : 66000,
-        Out_of_stock : false
-    },
-    'hp_64_gb' : {
-        name : 'HP 64 GB Pendrive',
-        price_in_Rs : 400,
-        discounted_price : 350,
-        Out_of_stock : false
-    },
-    'sandish_64_gb' : {
-        name : 'Sandisk 64 GB Pendrive',
-        price_in_Rs : 200,
-        discounted_price : 150,
-        Out_of_stock : false
-    },
-    'transcend_64_gb' : {
-        name : 'Transcend 64 GB Pendrive',
-        price_in_Rs : 300,
-        discounted_price : 250,
-        Out_of_stock : false
-    }
-};
+// const products = {
+//     'jean A' : {
+//         name : 'jean A',
+//         available_sizes : '32,34,36,38',
+//         price_in_Rs : 1000,
+//         discounted_price : 900,
+//         Out_of_stock : false
+//     },
+//     'jean B' : {
+//         name : 'jean B',
+//         available_sizes : '32,34',
+//         price_in_Rs : 1200,
+//         discounted_price : 1150,
+//         Out_of_stock : false
+//     },
+//     'jean C' : {
+//         name : 'jean C',
+//         available_sizes : '36,38',
+//         price_in_Rs : 15000,
+//         discounted_price : 1300,
+//         Out_of_stock : false
+//     },
+//     'tshirt A' : {
+//         name : 'tshirt A',
+//         available_sizes : '38,40,42,44',
+//         price_in_Rs : 500,
+//         discounted_price : 450,
+//         Out_of_stock : false
+//     },
+//     'tshirt B' : {
+//         name : 'tshirt B',
+//         available_sizes : '40,42,44',
+//         price_in_Rs : 400,
+//         discounted_price : 380,
+//         Out_of_stock : false
+//     },
+//     'tshirt C' : {
+//         name : 'tshirt C',
+//         available_sizes : '38,42,44',
+//         price_in_Rs : 200,
+//         discounted_price : 190,
+//         Out_of_stock : false
+//     },
+//     'iphone14' : {
+//         name : 'iPhone 14 3GB RAM, 128GB internal',
+//         price_in_Rs : 60000,
+//         discounted_price : 55000,
+//         Out_of_stock : false
+//     },
+//     'oneplus10' : {
+//         name : 'OnePlus 10 8GB RAM, 128GB internal',
+//         price_in_Rs : 40000,
+//         discounted_price : 33000,
+//         Out_of_stock : false
+//     },
+//     'samsung galaxy Z1 ultra' : {
+//         name : 'Samsung Galaxy Z1 Ultra 12GB RAM, 256GB internal',
+//         price_in_Rs : 70000,
+//         discounted_price : 66000,
+//         Out_of_stock : false
+//     },
+//     'hp_64_gb' : {
+//         name : 'HP 64 GB Pendrive',
+//         price_in_Rs : 400,
+//         discounted_price : 350,
+//         Out_of_stock : false
+//     },
+//     'sandish_64_gb' : {
+//         name : 'Sandisk 64 GB Pendrive',
+//         price_in_Rs : 200,
+//         discounted_price : 150,
+//         Out_of_stock : false
+//     },
+//     'transcend_64_gb' : {
+//         name : 'Transcend 64 GB Pendrive',
+//         price_in_Rs : 300,
+//         discounted_price : 250,
+//         Out_of_stock : false
+//     }
+// };
 
 // import User from './User.js';
 
@@ -549,13 +558,16 @@ const init = async () => {
     await server.start();
     await redisClient.connect();
     redisClient.on('error', (err) => logger.log({message : `Redis Client Error ${JSON.stringify(err)}`}));
+    const elasticIndexCreation = checkWhetherIndexExists('baseproductsearch');
+    /*ELK ARK
     let checkingWhetherIndexExists = await elasticClient.indices.exists({
         index :  'baseproductsearch'
     });
     if(!checkingWhetherIndexExists){
         createIndex('baseproductsearch');
-    }
-    console.log('Checker result ::: ',checkingWhetherIndexExists);
+    } 
+    */
+    console.log('Checker result ::: ',elasticIndexCreation);
     // createIndex('baseproductsearch');
     // require('./modelsnn/index');
     // await elasticClient.ping({
@@ -699,8 +711,8 @@ server.events.on('response', function (request) {
     console.log(obj);
     console.log('Response received is  ::::: ',request.response.source)
     // logger.info(addRemoteIPToFileLogger('Inside POST sign up request with ',request.location.ip,path,method));
-    logger.info(addRemoteIPToFileLogger(JSON.stringify(obj), request.location.ip,request.path,request.method));
-    logger.info(addRemoteIPToFileLogger('Inside server events on ', request.location.ip,request.path,request.method));
+    logger.info(addRemoteIPToFileLogger(JSON.stringify(obj), request != undefined && request.location != undefined ? request.location.ip : '',request != undefined ? request.path : '',request != undefined ? request.method : ''));
+    logger.info(addRemoteIPToFileLogger('Inside server events on ', request != undefined && request.location != undefined  ? request.location.ip : '',request != undefined ?request.path : '',request != undefined ? request.method : ''));
     // logger.log(request.location.ip + ': ' + request.method.toUpperCase() + ' ' + request.path + ' --> ' + request.response.statusCode);
 });
 
@@ -715,10 +727,10 @@ server.route(
     },
     {
         method : 'GET',
-        path : '/getAllProducts',
+        path : '/getcategories',
         handler : async function(request,h){
             let headers = request.headers,method = 'GET',path = '/getAllProducts';
-            let authHeader = headers['authorization'];
+            let authHeader = headers['authorization'],products = {};
             if(authHeader == undefined){
                 return h.response('Header missing in the request').code(401);
             }
@@ -734,34 +746,41 @@ server.route(
                 }
             let query_params = request.query,category = query_params['category'],sub_category = query_params['sub category'],obj = {},updateJson = {},from = query_params['offset'], fromRange = ( from != null && !isNaN(Number(from)))  ? from : 0;
             try{
-            if(sub_category != undefined && category != undefined){
-                if(isNaN(category)){
-                    return h.response({msg : 'Improper value provided for category param'}).code(200);
-                }
-                else if(isNaN(sub_category)){
-                    return h.response({msg : 'Improper value provided for sub category param'}).code(200);
-                }
-                updateJson = { where : { SUB_CATEGORY_ID : sub_category , CATEGORY_ID : category},offset : fromRange,limit : 10 };
-            }
-            else if(sub_category != undefined){
-                if(isNaN(sub_category)){
-                    return h.response({msg : 'Improper value provided for sub category param'}).code(200);
-                }
-                updateJson = { where : { SUB_CATEGORY_ID : sub_category},offset : fromRange,limit : 10 };
-            }
-            else if(category != undefined){
-                if(isNaN(category)){
-                    return h.response({msg : 'Improper value provided for category param'}).code(200);
-                }
-                updateJson = { where : { CATEGORY_ID : category},offset : fromRange,limit : 10 };
-            }
+            // if(sub_category != undefined && category != undefined){
+            //     if(isNaN(category)){
+            //         return h.response({msg : 'Improper value provided for category param'}).code(200);
+            //     }
+            //     else if(isNaN(sub_category)){
+            //         return h.response({msg : 'Improper value provided for sub category param'}).code(200);
+            //     }
+            //     updateJson = { where : { SUB_CATEGORY_ID : sub_category , CATEGORY_ID : category},offset : fromRange,limit : 10 };
+            // }
+            // else if(sub_category != undefined){
+            //     if(isNaN(sub_category)){
+            //         return h.response({msg : 'Improper value provided for sub category param'}).code(200);
+            //     }
+            //     updateJson = { where : { SUB_CATEGORY_ID : sub_category},offset : fromRange,limit : 10 };
+            // }
+            // else if(category != undefined){
+            //     if(isNaN(category)){
+            //         return h.response({msg : 'Improper value provided for category param'}).code(200);
+            //     }
+            //     updateJson = { where : { CATEGORY_ID : category},offset : fromRange,limit : 10 };
+            // }
             updateJson.order = [['CREATED_TIME','DESC']];
             // updateJson.include = [{
             //     model : BaseItems,
             //     required : true
             // }];
-            const products = await ProductDetails.findAll(updateJson);
-            // const products = await BaseItems.findAll({
+            // const products = await ProductDetails.findAll(updateJson);
+            products = await ProductDetails.findAll({include : [{
+                    model : AmartConstants
+                },{
+                    model : SubCategoryDetails
+                }],
+                group : [['AmartConstant.CONSTANT_ID','ASC'],['SubCategoryDetails.SUB_CATEGORY_ID','ASC'],['PRODUCT_ID','ASC']]});
+            console.log('Product Details :: ',products);
+            // lproducts = await BaseItems.findAll({
             //     include : [{
             //         model : ProductDetails,
             //         where : { SUB_CATEGORY_ID : sub_category , CATEGORY_ID : category},
@@ -785,12 +804,178 @@ server.route(
             return h.response(products).code(200);
         },
         config : {
+            // validate : {
+            //     query : Joi.object(
+            //         {
+            //             'category' : Joi.string().min(1).max(2),
+            //             'sub category' : Joi.string().min(1).max(2),
+            //             offset : Joi.string().min(1).max(2)
+            //         }
+            //     ),
+            //     failAction : function (request,h , source, error) {
+            //         return h.response({ code: 400, message: source.details[0].message}).takeover().code(400);
+            //     }
+            // },
+            description : 'This API is for listing the products along with their details based on the Category and Sub Category fields',
+            notes : `category and subcategory fields are being used as query params for filtering the results
+                    If category provided doesn't match with the category of the products available then all products will be listed
+                    Similarly when category matches and subcategory doesn't match then all products in that category will be shown`
+        }
+    },
+    {
+        method : 'GET',
+        path : '/getAllProducts',
+        handler : async function(request,h){
+            let headers = request.headers,method = 'GET',path = '/getAllProducts';
+            let authHeader = headers['authorization'],products = {};
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ','');
+            resp = tokenValidator(token,request.location.ip,path,method);
+            // console.log('RESPONSE RECEIVED ::::::::::: ',resp);
+                if(typeof resp != 'object'){
+                    logger.info(addRemoteIPToFileLogger(resp,request.location.ip,path,method));
+                    return h.response(resp).code(401);
+                }
+                else{
+                    logger.info(addRemoteIPToFileLogger(`Token successfully validated and response username : ${resp.username} password : ${resp.password} user ID : ${resp.user_id}`,request.location.ip,path,method));
+                }
+            let query_params = request.query,category = query_params['category'],sub_category = query_params['sub category'],obj = {},updateJson = {},from = query_params['offset'], fromRange = ( from != null && !isNaN(Number(from)))  ? from : 0;
+            try{
+            // if(sub_category != undefined && category != undefined){
+            //     if(isNaN(category)){
+            //         return h.response({msg : 'Improper value provided for category param'}).code(200);
+            //     }
+            //     else if(isNaN(sub_category)){
+            //         return h.response({msg : 'Improper value provided for sub category param'}).code(200);
+            //     }
+            //     updateJson = { where : { SUB_CATEGORY_ID : sub_category , CATEGORY_ID : category},offset : fromRange,limit : 10 };
+            // }
+            // else if(sub_category != undefined){
+            //     if(isNaN(sub_category)){
+            //         return h.response({msg : 'Improper value provided for sub category param'}).code(200);
+            //     }
+            //     updateJson = { where : { SUB_CATEGORY_ID : sub_category},offset : fromRange,limit : 10 };
+            // }
+            // else if(category != undefined){
+            //     if(isNaN(category)){
+            //         return h.response({msg : 'Improper value provided for category param'}).code(200);
+            //     }
+            //     updateJson = { where : { CATEGORY_ID : category},offset : fromRange,limit : 10 };
+            // }
+            updateJson.order = [['CREATED_TIME','DESC']];
+            // updateJson.include = [{
+            //     model : BaseItems,
+            //     required : true
+            // }];
+            // const products = await ProductDetails.findAll(updateJson);
+            products = await ProductDetails.findAll({
+                include : [
+                    {
+                        model : BaseItems
+                    }
+                ]
+            });
+            console.log('Product Details :: ',products);
+            // let productArray = [];
+            // Object.keys(products).map((product) => productArray.push(products[product]));
+            // console.log('Product array type ::: ',typeof productArray);
+            // lproducts = await BaseItems.findAll({
+            //     include : [{
+            //         model : ProductDetails,
+            //         where : { SUB_CATEGORY_ID : sub_category , CATEGORY_ID : category},
+            //         order : [['CREATED_TIME','DESC']],
+            //         required : true,
+            //     }]
+            // });
+            // console.log(products);
+            // for(let [key,value] of Object.entries(products)){
+            //     console.log('KEY :: ',key,'VALUE :: ',value);
+            // }
+            // console.log('Total length',Object.keys(products).length);
+            if(Object.keys(products).length == 0){
+                products.message = 'No results found.Reason could be improper values provided in the input';
+            }
+            return h.response(products).code(200);
+        }
+        catch(err){
+            logger.error(addRemoteIPToFileLogger(`Unable to get the products from DB ${err}`,request.location.ip,path,method));
+        }
+            return h.response(products).code(200);
+        },
+        config : {
             validate : {
                 query : Joi.object(
                     {
                         'category' : Joi.string().min(1).max(2),
                         'sub category' : Joi.string().min(1).max(2),
                         offset : Joi.string().min(1).max(2)
+                    }
+                ),
+                failAction : function (request,h , source, error) {
+                    return h.response({ code: 400, message: source.details[0].message}).takeover().code(400);
+                }
+            },
+            description : 'This API is for listing the products along with their details based on the Category and Sub Category fields',
+            notes : `category and subcategory fields are being used as query params for filtering the results
+                    If category provided doesn't match with the category of the products available then all products will be listed
+                    Similarly when category matches and subcategory doesn't match then all products in that category will be shown`
+        }
+    },
+    {
+        method : 'GET',
+        path : '/getProducts',
+        handler : async function(request,h){
+            let headers = request.headers,method = 'GET',path = '/getAllProducts';
+            let authHeader = headers['authorization'],products = {};
+            const limit = 5;
+            if(authHeader == undefined){
+                return h.response('Header missing in the request').code(401);
+            }
+            let token = authHeader.replace('Bearer ','');
+            resp = tokenValidator(token,request.location.ip,path,method);
+            // console.log('RESPONSE RECEIVED ::::::::::: ',resp);
+                if(typeof resp != 'object'){
+                    logger.info(addRemoteIPToFileLogger(resp,request.location.ip,path,method));
+                    return h.response(resp).code(401);
+                }
+                else{
+                    logger.info(addRemoteIPToFileLogger(`Token successfully validated and response username : ${resp.username} password : ${resp.password} user ID : ${resp.user_id}`,request.location.ip,path,method));
+                }
+            let query_params = request.query,pagenumber = query_params['pagenum'];
+            try{
+                // updateJson.order = [['CREATED_TIME','DESC']];
+                products = await ProductDetails.findAll({
+                    attributes: [["PRODUCT_ID",'id'],["ADDITONAL_INFO",'item_addn_details'],["ORIGINAL_PRICE",'original_price'],["DISCOUNTED_PRICE",'discounted_price']],
+                    include : [
+                        {
+                            model : BaseItems,
+                            attributes: [["ITEM_NAME",'item_name']]
+                        }
+                    ],
+                    order : [['CREATED_TIME','DESC']],
+                    offset:(pagenumber - 1) * limit,
+                    limit : limit,
+                });
+                console.log('Product Details :: ',products);
+                if(Object.keys(products).length == 0){
+                    products.message = 'No results found.Reason could be improper values provided in the input';
+                }
+                return h.response(products).code(200);
+            }
+            catch(err){
+                logger.error(addRemoteIPToFileLogger(`Unable to get the products from DB ${err}`,request.location.ip,path,method));
+                logger.error({message : `ERROR MESSAGE : ${err.message} ERROR STACK ::::::: ${err.stack}`});
+                logger.error({message : `ERROR DETAILS : ${JSON.stringify(err.errors)}`});
+            }
+            return h.response(products).code(200);
+        },
+        config : {
+            validate : {
+                query : Joi.object(
+                    {
+                        pagenum : Joi.number().min(1).max(6).required()
                     }
                 ),
                 failAction : function (request,h , source, error) {
@@ -993,7 +1178,7 @@ server.route(
     {
         method : 'GET',
         path : '/getcart',
-        handler : function(request,h){
+        handler : async function(request,h){
             let authHeader = request.headers['authorization'],path = '/getcart',method = request.method;
             logger.info(addRemoteIPToFileLogger(`Inside /getcart request`,request.location.ip,path,method));
             if(authHeader == undefined){
@@ -1001,27 +1186,39 @@ server.route(
                 return h.response('Header missing in the request').code(401);
             }
             let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+            console.log('Received token :: ',token);
+            console.log('Received response :: ',resp);
             if(typeof resp != 'object'){
                 logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
                 return h.response(resp).code(401);
             }
             // console.log('Response received : ',resp);
             // console.log('Username after decoding from token : ',resp['uname']);
-            let uname = resp['uname'];
-            if(uname == undefined || uname == ''){
-                return h.response('Kindly provide username to get his cart details').code(400);
+            let obj={};
+            try{
+                let cartProducts = await CartDetails.findAll({where : {
+                     USER_ID : resp.user_id
+                    },
+                    attributes: ['PRODUCT_ID']
+                });
+                //  console.log(`Data from DB :: ${JSON.stringify(cartProducts)} type :: ${typeof cartProducts}`);
+                // let obj2 = Object.values(cartProducts);
+                // console.log(`After extracting values alone :::: ${obj2} TYPE ::: ${typeof obj2}`);
+                obj = cartProducts;
             }
-            else if(!(uname in active_user_list)){
-                logger.warn(addRemoteIPToFileLogger(`Mentioned user : ${uname} isn\'t a valid user Kindly provide valid value for username param`,request.location.ip,path,method));
-                return h.response('Mentioned user isn\'t a valid user Kindly provide valid value for username param ').code(400);
+            catch(err){
+                console.log('Error occurred ');
+                logger.error({message : `ERROR MESSAGE : ${err.message} ERROR STACK ::::::: ${err.stack}`});
+                logger.error({message : `ERROR DETAILS : ${JSON.stringify(err.errors)}`});
+                obj.message = 'An error occurred';
             }
-            else{
-                let cartDetils = userCartDetails[uname],obj={};
-                obj.userCart = cartDetils;
-                logger.info(addRemoteIPToFileLogger(`Cart details of the user : ${JSON.stringify(cartDetils)}`,request.location.ip,path,method));
-                logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('user accessing cart',request.location,logs[uname]);
+
+
+                // let cartDetils = userCartDetails[uname],obj={};
+                // obj.userCart = cartDetils;
+                // logger.info(addRemoteIPToFileLogger(`Cart details of the user : ${JSON.stringify(cartDetils)}`,request.location.ip,path,method));
+                // logs[uname] = loggingFunction.loggingTheActionToGlobalVariable('user accessing cart',request.location,logs[uname]);
                 return h.response(obj).code(200);
-            }
         }
     },
     {
@@ -1086,13 +1283,19 @@ server.route(
                                 }
                             }
                             console.log('Phrase String :::: ',phraseToBeSearched);
+                            let documentToPushToElastic = {
+                                id : baseitems.BASE_ITEM_ID,
+                                content : phraseToBeSearched
+                            };
+                            const result = await  insertDocumentsToELK('baseproductsearch',documentToPushToElastic);
+                            /* ELK ARK 
                             const result = await elasticClient.index({
                                 index: "baseproductsearch",
                                 document: {
                                     id: baseitems.BASE_ITEM_ID,
                                     content: phraseToBeSearched,
                                 },
-                            });
+                            });  */
                             console.log('Result after adding data to ELK :::: ',result);
                         }
                         catch(error){
@@ -1195,6 +1398,98 @@ server.route(
                     return h.response({ code: 400, message: obj}).takeover().code(400);
                 }
             }
+        }
+    },
+    {
+        method : ['GET'],
+        path : '/getaddresses',
+        handler : async function(request,h){
+            let status = 500,response = {};
+            try{
+                let authHeader = request.headers['authorization'],path = '/getaddresses',method = request.method;
+                logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
+                if(authHeader == undefined){
+                    logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
+                    return h.response('Header missing in the request').code(401);
+                }
+                let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+                if(typeof resp != 'object'){
+                    logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
+                    return h.response(resp).code(401);
+                }
+                let userid = resp.user_id;
+
+                // const user = await User.findOne({where : { USER_ID : userid}});
+                const addresses = await Address.findAll({where : {USER_ID : resp.user_id}});
+                console.log(`USER FROM DB ::: ${addresses} type ::: ${typeof addresses}`);
+                let response = {};
+                if(addresses.length > 0){
+                    response = addresses;
+                }
+                else{
+                    response.msg = 'No address found';
+                }
+                return h.response(response).code(200);
+            }
+            catch(error){
+                response.msg = 'Error occurred while getting address';
+                logger.error(addRemoteIPToFileLogger(`Error occurred while getting address ${error}`,request.location.ip,'/getaddresses',request.method));
+                logger.error({message : `ERROR MESSAGE : ${error.message} ERROR STACK ::::::: ${error.stack}`});
+                logger.error({message : `ERROR DETAILS : ${JSON.stringify(error.errors)}`});
+            }
+            return h.response(response).code(200);
+        }
+    },
+    {
+        method : ['GET'],
+        path : '/userdetails',
+        handler : async function(request,h){
+            let status = 500,response = {};
+            try{
+                let authHeader = request.headers['authorization'],path = '/getaddresses',method = request.method;
+                logger.info(addRemoteIPToFileLogger(`Inside the request`,request.location.ip,path,method));
+                if(authHeader == undefined){
+                    logger.warn(addRemoteIPToFileLogger(`Header missing in the request`,request.location.ip,path,method));
+                    return h.response('Header missing in the request').code(401);
+                }
+                let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+                if(typeof resp != 'object'){
+                    logger.warn(addRemoteIPToFileLogger(`Decoded value isn\'t an object`,request.location.ip,path,method));
+                    return h.response(resp).code(401);
+                }
+                let userid = resp.user_id;
+
+                // const user = await User.findOne({where : { USER_ID : userid}});
+                // const addresses = await Address.findAll({where : {USER_ID : resp.user_id}});
+                const userDetails = await User.findAll({
+                    where : {
+                        USER_ID : resp.user_id
+                    },
+                    attributes: [["FIRST_NAME",'firstname'], ["LAST_NAME",'lastname'],["EMAIL",'email'],["PHONE",'phone']],
+                    include : [
+                        {
+                            model : Address,
+                            attributes: [["ADDRESS_ID",'aid'], ["FLAT_NO",'flatno'],["FLAT_NAME",'flatname'],["STREET",'street'],["CITY",'city'],["STATE",'state'],["PINCODE",'pincode']],
+                        }
+                    ]
+                });
+                console.log(`USER FROM DB ::: ${userDetails} type ::: ${typeof userDetails}`);
+                let response = {};
+                if(userDetails.length > 0){
+                    response = userDetails;
+                }
+                else{
+                    response.msg = 'User Details not found';
+                }
+                return h.response(response).code(200);
+            }
+            catch(error){
+                response.msg = 'Error occurred while getting address';
+                logger.error(addRemoteIPToFileLogger(`Error occurred while getting address ${error}`,request.location.ip,'/getaddresses',request.method));
+                logger.error({message : `ERROR MESSAGE : ${error.message} ERROR STACK ::::::: ${error.stack}`});
+                logger.error({message : `ERROR DETAILS : ${JSON.stringify(error.errors)}`});
+            }
+            return h.response(response).code(200);
         }
     },
     {
@@ -1620,6 +1915,7 @@ server.route(
                         status = 200;
                     }
                     catch(err){
+                        response.msg = 'Unable to order item at this moment';
                         logger.error(addRemoteIPToFileLogger(`Error occurred: ${err}`,request.location.ip,path,method));
                     }
                     
@@ -1743,6 +2039,87 @@ server.route(
     },
     {
         method : 'GET',
+        path : '/clientsearch',
+        handler : async function(request,h){
+            let authHeader = request.headers['authorization'],method = 'GET',path ='/userlogs', resultJSON = [],response = {},status = 500;
+            try{
+                if(authHeader == undefined){
+                    return h.response('Header missing in the request').code(401);
+                }
+                let token = authHeader.replace('Bearer ',''),resp = tokenValidator(token,request.location.ip,path,method);
+                if(typeof resp != 'object'){
+                    return h.response(resp).code(401);
+                }
+                let searchterm = request.query['searchword'];
+                console.log('SEARCH :: ',searchterm);
+                let searchProductIDs = [];
+                if(searchterm != '' && searchterm != undefined){
+                    let fieldsAndValueToSearch = {
+                        fieldName : 'content',
+                        searchterm : searchterm
+                    }
+                    const result = await searchForText('baseproductsearch',fieldsAndValueToSearch);
+                    /* ELK ARK
+                    const result = await elasticClient.search({
+                        index: "baseproductsearch",
+                        "query": {
+                            "query_string" : {"default_field" : "content", "query" : searchterm}
+                        },
+                    });
+                    */
+                    console.log('ELK SEARCH RESULT :::: ',result);
+                    for(const [key,value] of Object.entries(result.hits.hits)){
+                        // const baseItemDetails = await BaseItems.findOne({where : {BASE_ITEM_ID : value['_source'].id}});
+                        // let productDetails = {};
+                        // productDetails["Item Name"] = baseItemDetails.ITEM_NAME;
+                        // productDetails["Item Info"] = baseItemDetails.ITEM_INFO;
+                        const products = await ProductDetails.findAll({
+                                where : {
+                                    BASE_ITEM_ID : value['_source'].id
+                                },
+                                attributes: ['PRODUCT_ID']
+                            });
+                        console.log(`RES :: ${products} TYPE :: ${typeof products}`);
+    
+                        // ,
+                        // include : [{
+                        //     model : BaseItems,
+                        //     required: true
+                        // }]
+    
+                        for(const [key,value] of Object.entries(products)){
+                            console.log('KEy :: ',key,'value PRODUCT IDs :: ',value.dataValues.PRODUCT_ID);
+                            searchProductIDs.push(value.dataValues.PRODUCT_ID);
+                            // const individualProductDetails = value.dataValues;
+                            // // console.log('ABCD ::: ',individualProductDetails);
+                            // let itemDetails = {};
+                            // itemDetails["Item Name"] = baseItemDetails.ITEM_NAME;
+                            // itemDetails["Item Info"] = Object.assign({},baseItemDetails.ITEM_INFO,individualProductDetails.ADDITONAL_INFO);
+                            // itemDetails["Original Price"] = individualProductDetails.ORIGINAL_PRICE;
+                            // itemDetails["Discounted Price"] = individualProductDetails.DISCOUNTED_PRICE;
+                            // resultJSON.push(itemDetails);
+                            // console.log('-------');
+                            // // console.log('Product VAL ::: ',value);
+                            // console.log('value dataValues ::: ',value.dataValues);
+                            // console.log('-------');
+                        }
+                    }
+                }
+                response.msg = searchProductIDs.length > 0 ? searchProductIDs : 'No matching records found';
+                status = 200;
+            }
+            catch(err){
+                response.msg = 'Error occurred while getting data from ELK';
+                status = 500;
+                logger.error({message : `ERROR MESSAGE : ${err.message} ERROR STACK ::::::: ${err.stack}`});
+                logger.error({message : `ERROR DETAILS : ${JSON.stringify(err.errors)}`});
+            }
+
+            return h.response(response).code(200);
+        }
+    },
+    {
+        method : 'GET',
         path : '/search',
         handler : async function(request,h){
             let authHeader = request.headers['authorization'],method = 'GET',path ='/userlogs', resultJSON = [],response = {},status = 500;
@@ -1755,38 +2132,49 @@ server.route(
                     return h.response(resp).code(401);
                 }
                 let searchterm = request.query['searchword'];
-                const result = await elasticClient.search({
-                    index: "baseproductsearch",
-                    "query": {
-                        "query_string" : {"default_field" : "content", "query" : searchterm}
-                    },
-                });
-                for(const [key,value] of Object.entries(result.hits.hits)){
-                    const baseItemDetails = await BaseItems.findOne({where : {BASE_ITEM_ID : value['_source'].id}});
-                    // let productDetails = {};
-                    // productDetails["Item Name"] = baseItemDetails.ITEM_NAME;
-                    // productDetails["Item Info"] = baseItemDetails.ITEM_INFO;
-                    const products = await ProductDetails.findAll({where : {BASE_ITEM_ID : value['_source'].id}});
+                console.log('SEARCH :: ',searchterm);
+                if(searchterm != '' && searchterm != undefined){
+                    let fieldsAndValueToSearch = {
+                        fieldName : 'content',
+                        searchterm : searchterm
+                    };
+                    const result = await searchForText('baseproductsearch',fieldsAndValueToSearch);
+                    console.log('Result after adding data to ELK :::: ',result);
 
-                    // ,
-                    // include : [{
-                    //     model : BaseItems,
-                    //     required: true
-                    // }]
+                    // const result = await elasticClient.search({
+                    //     index: "baseproductsearch",
+                    //     "query": {
+                    //         "query_string" : {"default_field" : "content", "query" : searchterm}
+                    //     },
+                    // });
 
-                    for(const [key,value] of Object.entries(products)){
-                        const individualProductDetails = value.dataValues;
-                        // console.log('ABCD ::: ',individualProductDetails);
-                        let itemDetails = {};
-                        itemDetails["Item Name"] = baseItemDetails.ITEM_NAME;
-                        itemDetails["Item Info"] = Object.assign({},baseItemDetails.ITEM_INFO,individualProductDetails.ADDITONAL_INFO);
-                        itemDetails["Original Price"] = individualProductDetails.ORIGINAL_PRICE;
-                        itemDetails["Discounted Price"] = individualProductDetails.DISCOUNTED_PRICE;
-                        resultJSON.push(itemDetails);
-                        console.log('-------');
-                        // console.log('Product VAL ::: ',value);
-                        console.log('value dataValues ::: ',value.dataValues);
-                        console.log('-------');
+                    for(const [key,value] of Object.entries(result.hits.hits)){
+                        const baseItemDetails = await BaseItems.findOne({where : {BASE_ITEM_ID : value['_source'].id}});
+                        // let productDetails = {};
+                        // productDetails["Item Name"] = baseItemDetails.ITEM_NAME;
+                        // productDetails["Item Info"] = baseItemDetails.ITEM_INFO;
+                        const products = await ProductDetails.findAll({where : {BASE_ITEM_ID : value['_source'].id}});
+    
+                        // ,
+                        // include : [{
+                        //     model : BaseItems,
+                        //     required: true
+                        // }]
+    
+                        for(const [key,value] of Object.entries(products)){
+                            const individualProductDetails = value.dataValues;
+                            // console.log('ABCD ::: ',individualProductDetails);
+                            let itemDetails = {};
+                            itemDetails["Item Name"] = baseItemDetails.ITEM_NAME;
+                            itemDetails["Item Info"] = Object.assign({},baseItemDetails.ITEM_INFO,individualProductDetails.ADDITONAL_INFO);
+                            itemDetails["Original Price"] = individualProductDetails.ORIGINAL_PRICE;
+                            itemDetails["Discounted Price"] = individualProductDetails.DISCOUNTED_PRICE;
+                            resultJSON.push(itemDetails);
+                            console.log('-------');
+                            // console.log('Product VAL ::: ',value);
+                            console.log('value dataValues ::: ',value.dataValues);
+                            console.log('-------');
+                        }
                     }
                 }
                 response.msg = resultJSON.length > 0 ? resultJSON : 'No matching records found';
@@ -1829,16 +2217,20 @@ server.route(
                     status = 401;
                 }
                 else{
+                    const elasticResult = deleteIndicesInElastic('baseproductsearch');
+                    /* ELK ARK
                     let deleteIndexResult = await elasticClient.indices.delete({
                         index: ['baseproductsearch']
                     });
-                    console.log('Delete Index result ::: ',deleteIndexResult);
+                    */
+                    console.log('Delete Index result ::: ',elasticResult);
                     const baseProducts = await BaseItems.findAll({where : { BASE_ITEM_ID: {
                         [Sequelize.Op.ne]: null
                     }
                     }}
                     );
-                    createIndex('baseproductsearch');
+                    const response = await createIndex('baseproductsearch');
+                    console.log('Received elastic response :: ',response);
                     for(const [key1,value1] of Object.entries(baseProducts)){
                         console.log('Key :::  ',key1,'value ::: ',value1);
                         let phraseToBeSearched = value1.dataValues.ITEM_NAME;
@@ -1852,6 +2244,12 @@ server.route(
                             }
                         }
                         console.log('Final concat Text ::: ',phraseToBeSearched);
+                        let documentToPushToElastic = {
+                            id : value1.dataValues.BASE_ITEM_ID,
+                            content : phraseToBeSearched
+                        };
+                        const result = await insertDocumentsToELK('baseproductsearch',documentToPushToElastic);
+                        /* ELK ARK
                         const result = await elasticClient.index({
                             index: "baseproductsearch",
                             document: {
@@ -1859,6 +2257,7 @@ server.route(
                             content: phraseToBeSearched,
                             },
                         });
+                        */
                         console.log('Result after adding data :::: ',result);
                     }
                 response.msg = 'Successfully indexed into Elastic Search';
@@ -2134,9 +2533,9 @@ server.route(
             try{
                 let query_params = request.payload,path = '/user/signup', method = request.method;
                 let uname = query_params['username'],pwd = query_params['password'],email = query_params['email'];
-                let updateJson = {FIRST_NAME : query_params['first_name'] , USERNAME : uname , PASSWORD : pwd, EMAIL : email, PHONE : String(query_params['phone'])};
-                if(query_params['last_name'] != null){
-                    updateJson.LAST_NAME = query_params['last_name'];
+                let updateJson = {FIRST_NAME : query_params['first name'] , USERNAME : uname , PASSWORD : pwd, EMAIL : email, PHONE : String(query_params['phone'])};
+                if(query_params['last name'] != null){
+                    updateJson.LAST_NAME = query_params['last name'];
                 }
                 console.log('User create query ::::: ',updateJson);
                 let result = await User.create(updateJson);
@@ -2167,7 +2566,7 @@ server.route(
                 logger.info(addRemoteIPToFileLogger(`Job name : ${jobName} has been added to queue : NewUser`,request.location.ip,path,method));
                 let auditlog = await AuditLogs.create({ACTIONS : 'New User Creation',FIELDS_AFFECTED : updateJson,RECORD_ID : result.USER_ID,USER_ID : result.USER_ID,MODULE_ID : moduleWithIdDetails['User']});
                 logger.info(addRemoteIPToFileLogger(`Entry added to AuditLog AuditLogID : ${auditlog.AUDIT_LOG_ID}`,request.location.ip,path,method));
-                return h.response('Successfully created account').code(200);
+                return h.response({message : 'Successfully created account'}).code(200);
             }
             catch(err){
                 let errorObj = {};
@@ -2197,8 +2596,8 @@ server.route(
                                 username : Joi.string().min(4).max(10).required(),
                                 password : Joi.string().min(4).max(10).required(),
                                 email: Joi.string().email().required(),
-                                first_name : Joi.string().min(5).max(10).required(),
-                                last_name : Joi.string().min(1).max(10),
+                                'first name' : Joi.string().min(5).max(10).required(),
+                                'last name': Joi.string().min(1).max(10),
                                 phone : Joi.number().integer().min(7 * (10 ** 9)).max((10 ** 10) - 1)
                             }
                             ),

@@ -494,7 +494,7 @@ server.route(
     },
     {
         method : 'GET',
-        path : '/getAllProducts',
+        path : '/getAllProductssdf',
         handler : function(request,h){
             let headers = request.headers;
             // console.log('Header details : ',headers);
